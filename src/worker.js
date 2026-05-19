@@ -29,6 +29,10 @@ export default {
   },
 
   async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(runScheduledReport(env));
+    ctx.waitUntil(
+      runScheduledReport(env).catch((error) => {
+        console.error("scheduled report failed:", error?.message || error);
+      }),
+    );
   },
 };

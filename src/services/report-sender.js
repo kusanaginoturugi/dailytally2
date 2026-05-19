@@ -284,17 +284,26 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage) {
 }
 
 export async function runScheduledReport(env) {
+  // 早期短絡: enabled=false / sendTime 不正 / 時刻前 なら DB 1回で抜ける
+  const settings = await getReportSettings(env.DB);
+  if (!settings.enabled || !/^\d{2}:\d{2}$/.test(settings.sendTime || "")) {
+    return;
+  }
+  const now = new Date();
+  const jst = nowJST(now);
+  const [hour, minute] = settings.sendTime.split(":").map(Number);
+  if (jst.getUTCHours() * 60 + jst.getUTCMinutes() < hour * 60 + minute) {
+    return;
+  }
   const ceremonyId = await getActiveCeremonyId(env.DB);
   if (!ceremonyId) return;
   const ceremonyRow = await getCeremony(env.DB, ceremonyId);
   if (!ceremonyRow) return;
   const ceremony = await ensureCeremonyDates(env.DB, ceremonyRow);
-  const settings = await getReportSettings(env.DB);
-  const now = new Date();
   if (!isReportDue(settings, ceremony, now)) {
     return;
   }
-  const today = nowJST(now).toISOString().slice(0, 10);
+  const today = jst.toISOString().slice(0, 10);
   const sendKey = buildSendKey(ceremony.id, today, settings.sendTime);
   await sendReport(env, ceremony, settings, sendKey, `${settings.sendTime} の自動送信を開始`);
 }
