@@ -1,0 +1,12 @@
+/.git
+/.wrangler
+/migrations
+/node_modules
+/package.json
+/package-lock.json
+/README.md
+/SSO_SPEC.md
+/scripts
+/src
+/wrangler.toml
+/wrangler.jsonc

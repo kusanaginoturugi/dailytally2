@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>毎日集計</title>
+    <link rel="stylesheet" href="style.css?v=v2-init" />
+  </head>
+  <body>
+    <header>
+      <h1 id="appTitle">毎日集計</h1>
+      <p id="userStatus" class="user-status"></p>
+    </header>
+
+    <main>
+      <section class="tabs" aria-label="伝道会ページ切り替え">
+        <div id="tabButtons" class="tab-buttons"></div>
+      </section>
+
+      <section id="pageContainer" class="page-container"></section>
+    </main>
+
+    <template id="inputPageTemplate">
+      <section class="input-page">
+        <h2 class="page-title"></h2>
+        <div class="input-warning" role="alert" hidden></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr id="inputHeaderRow"></tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr id="inputWeeklyTotalRow"></tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+    </template>
+
+    <template id="adminPageTemplate">
+      <section class="admin-page">
+        <div class="settings" aria-label="表示設定">
+          <label>
+            護摩供
+            <select id="ceremonySelect"></select>
+          </label>
+          <label>
+            週の開始日
+            <input id="weekStart" type="text" inputmode="numeric" placeholder="mm/dd" />
+          </label>
+          <label>
+            最終日
+            <input id="weekEnd" type="text" inputmode="numeric" placeholder="mm/dd" />
+          </label>
+          <label>
+            得道者数開始日
+            <input id="seekerStart" type="text" inputmode="numeric" placeholder="mm/dd" />
+          </label>
+        </div>
+        <section class="report-settings" aria-label="オンライン報告設定">
+          <div class="report-settings-header">
+            <h2>オンライン報告</h2>
+            <label class="toggle-label">
+              <input id="reportEnabled" type="checkbox" />
+              自動送信
+            </label>
+          </div>
+          <div class="report-settings-grid">
+            <label>
+              送信時刻
+              <input id="reportSendTime" type="time" />
+            </label>
+            <label>
+              送信者名
+              <input id="reportSenderName" type="text" />
+            </label>
+            <label>
+              伝道会名
+              <input id="reportBranchName" type="text" />
+            </label>
+            <label>
+              伝道会コード
+              <input id="reportBranchCode" type="text" inputmode="numeric" />
+            </label>
+            <label>
+              通知先メール
+              <input id="reportNotifyEmail" type="email" />
+            </label>
+          </div>
+          <p id="reportStatus" class="report-status"></p>
+          <div class="manual-report-controls">
+            <label class="manual-report-unlock">
+              <input id="manualReportUnlock" type="checkbox" />
+              手動送信のロックを解除
+            </label>
+            <button id="manualReportButton" class="manual-report-button" type="button" disabled>今すぐ送信</button>
+          </div>
+          <p id="manualReportResult" class="manual-report-result"></p>
+          <div class="report-history" aria-label="オンライン報告履歴">
+            <h3>送信履歴</h3>
+            <ul id="reportHistoryList"></ul>
+          </div>
+        </section>
+        <section class="user-list-section" aria-label="ユーザー一覧">
+          <div class="user-list-header">
+            <h2>ユーザー一覧</h2>
+          </div>
+          <div class="user-table-wrap">
+            <table class="user-table">
+              <thead>
+                <tr>
+                  <th>ログインID</th>
+                  <th>伝道会名</th>
+                  <th>名前</th>
+                  <th>メールアドレス</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </template>
+
+    <template id="summaryPageTemplate">
+      <section class="summary-page">
+        <div class="summary-actions">
+          <button id="summaryPdfButton" class="summary-pdf-button" type="button">PDF出力</button>
+        </div>
+        <div id="summaryPrintArea" class="summary-print-area">
+          <div class="table-wrap">
+            <table class="data-table summary-table" id="summaryTable">
+              <thead>
+                <tr class="summary-table-title-row">
+                  <th data-summary-title data-summary-colspan colspan="10"></th>
+                </tr>
+                <tr class="summary-meta-row">
+                  <th class="summary-meta-temple" colspan="3">
+                    <span class="summary-meta-label">聖院名:</span>
+                    <span class="summary-meta-value">聖明王院</span>
+                  </th>
+                  <th class="summary-meta-person" colspan="3">
+                    <span class="summary-meta-label">ご担当者名:</span>
+                    <span class="summary-meta-value">尾ノ上裕美</span>
+                  </th>
+                  <th class="summary-meta-phone" data-phone-colspan colspan="4">
+                    <span class="summary-meta-label">電話番号:</span>
+                    <span class="summary-meta-value">09041779036</span>
+                  </th>
+                </tr>
+                <tr id="summaryHeaderRow"></tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr id="weeklyTotalRow"></tr>
+              </tfoot>
+            </table>
+          </div>
+          <p class="summary-note">※水は種類を問わず、箱数で記入(1箱20リットルとして計算願います)</p>
+        </div>
+      </section>
+    </template>
+
+    <script src="app.js?v=v2-init"></script>
+  </body>
+</html>

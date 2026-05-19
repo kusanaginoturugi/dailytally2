@@ -1,0 +1,18 @@
+{
+  "name": "dailytally2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --name dailytally2 --compatibility-flags nodejs_compat",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:reset:local": "wrangler d1 execute DB --local --command 'SELECT 1'",
+    "migrate-v1:local": "node scripts/migrate-from-v1.mjs --local",
+    "migrate-v1:remote": "node scripts/migrate-from-v1.mjs --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/puppeteer": "^1.1.0",
+    "wrangler": "^4.92.0"
+  }
+}
