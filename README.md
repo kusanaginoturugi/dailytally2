@@ -76,22 +76,28 @@ dailytally2/
    npm run deploy
    ```
 
-## シークレット
+## 環境変数とシークレット
 
-旧 Dailytally と同じものを `wrangler secret put` で個別に設定する。
+公開されても問題ない環境ごとの設定は `wrangler.toml` の `[vars]` に置く。
+
+```toml
+[vars]
+AUTHENTIK_ISSUER = "https://auth.showway.biz/application/o/dailytally2/"
+AUTHENTIK_CLIENT_ID = "..."
+REPORT_REMOTE_SUBMIT = "false"
+# TENDO_ACCOUNT = ""
+# REPORT_NOTIFY_FROM = "Dailytally <notify@example.com>"
+# REPORT_ONLINE_FORM_URL = ""
+# REPORT_ONLINE_FILE_FIELD = "up_file[]"
+```
+
+秘匿が必要な値だけ `wrangler secret put` で個別に設定する。
 
 ```sh
-npx wrangler secret put --name dailytally2 AUTHENTIK_ISSUER
-npx wrangler secret put --name dailytally2 AUTHENTIK_CLIENT_ID
 npx wrangler secret put --name dailytally2 AUTHENTIK_CLIENT_SECRET
 npx wrangler secret put --name dailytally2 SESSION_SECRET
-npx wrangler secret put --name dailytally2 TENDO_ACCOUNT
 npx wrangler secret put --name dailytally2 TENDO_PASSWORD
 npx wrangler secret put --name dailytally2 RESEND_API_KEY
-npx wrangler secret put --name dailytally2 REPORT_NOTIFY_FROM
-npx wrangler secret put --name dailytally2 REPORT_REMOTE_SUBMIT       # 実送信許可は "true"
-npx wrangler secret put --name dailytally2 REPORT_ONLINE_FORM_URL     # 任意
-npx wrangler secret put --name dailytally2 REPORT_ONLINE_FILE_FIELD   # 任意 (既定: up_file[])
 ```
 
 ローカル開発時は `.dev.vars.example` を `.dev.vars` にコピーして値を埋める。

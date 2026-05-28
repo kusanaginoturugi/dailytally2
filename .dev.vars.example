@@ -1,4 +1,5 @@
-# dailytally2 ローカル開発用シークレット (本番は wrangler secret put)
+# dailytally2 ローカル開発用の環境変数とシークレット
+# 本番の非秘匿値は wrangler.toml、秘匿値は wrangler secret put で設定する。
 AUTHENTIK_ISSUER=
 AUTHENTIK_CLIENT_ID=
 AUTHENTIK_CLIENT_SECRET=

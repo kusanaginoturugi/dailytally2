@@ -28,22 +28,31 @@ npm run db:migrate:remote
 
 10 テーブル + シード(9 伝道会 / 9 護摩供 / 84 集計項目 / `report_settings` 初期行 / `app_settings.active_ceremony_id=1`)が入る。
 
-### 3. シークレット投入
+### 3. 環境変数とシークレット投入
 
-旧と同じ値を `wrangler secret put` で個別に入れる。
+公開されても問題ない環境ごとの設定は `wrangler.toml` の `[vars]` に置く。
 
-```sh
-npx wrangler secret put AUTHENTIK_ISSUER --name dailytally2
-npx wrangler secret put AUTHENTIK_CLIENT_ID --name dailytally2
-npx wrangler secret put AUTHENTIK_CLIENT_SECRET --name dailytally2
-npx wrangler secret put SESSION_SECRET --name dailytally2
-npx wrangler secret put TENDO_ACCOUNT --name dailytally2
-npx wrangler secret put TENDO_PASSWORD --name dailytally2
-npx wrangler secret put RESEND_API_KEY --name dailytally2
-npx wrangler secret put REPORT_NOTIFY_FROM --name dailytally2
+```toml
+[vars]
+AUTHENTIK_ISSUER = "https://auth.showway.biz/application/o/dailytally2/"
+AUTHENTIK_CLIENT_ID = "..."
+REPORT_REMOTE_SUBMIT = "false"
+# TENDO_ACCOUNT = ""
+# REPORT_NOTIFY_FROM = "Dailytally <notify@example.com>"
+# REPORT_ONLINE_FORM_URL = ""
+# REPORT_ONLINE_FILE_FIELD = "up_file[]"
 ```
 
-`REPORT_REMOTE_SUBMIT` (tendo 実送信フラグ) は並走中は **入れない or `false`** にしておく。動作確認後、旧から切り替えるタイミングで `true` に設定する。
+秘匿が必要な値だけ `wrangler secret put` で個別に入れる。
+
+```sh
+npx wrangler secret put AUTHENTIK_CLIENT_SECRET --name dailytally2
+npx wrangler secret put SESSION_SECRET --name dailytally2
+npx wrangler secret put TENDO_PASSWORD --name dailytally2
+npx wrangler secret put RESEND_API_KEY --name dailytally2
+```
+
+`REPORT_REMOTE_SUBMIT` (tendo 実送信フラグ) は並走中は **`false`** にしておく。動作確認後、旧から切り替えるタイミングで `true` に設定する。
 
 ### 4. デプロイ
 
