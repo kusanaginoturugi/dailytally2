@@ -80,8 +80,6 @@ function sqlBool(value) {
 
 function generate(state) {
   const lines = [];
-  lines.push("BEGIN TRANSACTION;");
-  lines.push("");
 
   // active ceremony
   const activeSlug = state.settings?.ceremonyId;
@@ -211,7 +209,6 @@ function generate(state) {
     );
   }
   lines.push("");
-  lines.push("COMMIT;");
   return lines.join("\n");
 }
 
