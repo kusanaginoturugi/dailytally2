@@ -166,20 +166,6 @@ function generate(state) {
   }
   lines.push("");
 
-  // users
-  for (const user of state.users || []) {
-    if (!user?.loginId) continue;
-    lines.push(
-      `INSERT INTO users (login_id, fellowship_id, name, email, role) ` +
-        `SELECT ${sqlStr(user.loginId)}, ` +
-        `${user.fellowship ? `(SELECT id FROM fellowships WHERE name = ${sqlStr(user.fellowship)})` : "NULL"}, ` +
-        `${sqlStr(user.name)}, ${sqlStr(user.email)}, ${sqlStr(user.role)} ` +
-        `ON CONFLICT(login_id) DO UPDATE SET ` +
-        `fellowship_id = excluded.fellowship_id, name = excluded.name, email = excluded.email, role = excluded.role;`,
-    );
-  }
-  lines.push("");
-
   // report_settings
   const r = state.reportAutomation || {};
   lines.push(

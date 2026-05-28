@@ -15,7 +15,6 @@ const state = {
   activeCeremonyData: { ceremonyId: null, tallies: [], fellowshipTargets: [], summaryOverrides: [] },
   reportSettings: defaultReportSettings(),
   reportHistory: [],
-  users: [],
 };
 let activeTab = "admin";
 
@@ -105,7 +104,6 @@ function normalizeRemoteState(remote) {
     activeCeremonyData: remote.activeCeremonyData || { tallies: [], fellowshipTargets: [], summaryOverrides: [] },
     reportSettings: { ...defaultReportSettings(), ...(remote.reportSettings || {}) },
     reportHistory: remote.reportHistory || [],
-    users: remote.users || [],
   };
 }
 
@@ -895,24 +893,8 @@ function renderAdminPage() {
     sendManualReport(manualButton, manualUnlock, reportStatus, historyList, manualResult);
   });
 
-  renderUserList(content);
-
   pageContainer.innerHTML = "";
   pageContainer.appendChild(content);
-}
-
-function renderUserList(content) {
-  const tbody = content.querySelector("#userTableBody");
-  tbody.innerHTML = "";
-  for (const user of state.users) {
-    const tr = document.createElement("tr");
-    [user.loginId, user.fellowship, user.name, user.email].forEach((value) => {
-      const td = document.createElement("td");
-      td.textContent = value || "";
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  }
 }
 
 async function saveSummaryPdf(button) {

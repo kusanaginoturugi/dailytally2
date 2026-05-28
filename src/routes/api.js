@@ -27,7 +27,6 @@ import {
   upsertFellowshipTarget,
   upsertSummaryTargetOverride,
 } from "../services/targets.js";
-import { listUsers, replaceUsers } from "../services/users.js";
 import {
   getReportSettings,
   listReportHistory,
@@ -53,10 +52,9 @@ async function readBootstrap(env) {
     normalizedCeremonies.push({ ...normalized, items: itemsByCeremony.get(ceremony.id) || [] });
   }
   const activeData = await readCeremonyData(env, activeId);
-  const [reportSettings, reportHistory, users] = await Promise.all([
+  const [reportSettings, reportHistory] = await Promise.all([
     getReportSettings(env.DB),
     listReportHistory(env.DB, 20),
-    listUsers(env.DB),
   ]);
   return {
     activeCeremonyId: activeId,
@@ -65,7 +63,6 @@ async function readBootstrap(env) {
     activeCeremonyData: activeData,
     reportSettings,
     reportHistory,
-    users,
   };
 }
 
@@ -222,13 +219,6 @@ async function handleReportSettings(request, env) {
   return jsonResponse({ ok: true, reportSettings: await getReportSettings(env.DB) });
 }
 
-async function handleUsers(request, env) {
-  if (!canWriteAdmin(request)) return forbidden();
-  const body = await request.json();
-  await replaceUsers(env.DB, Array.isArray(body.users) ? body.users : []);
-  return jsonResponse({ ok: true, users: await listUsers(env.DB) });
-}
-
 async function handleReportPdf(request, env) {
   if (!canWriteAdmin(request)) return forbidden();
   const url = new URL(request.url);
@@ -268,7 +258,6 @@ export async function handleApi(request, env) {
   if (path === "/api/fellowship-targets" && request.method === "POST") return handleFellowshipTargets(request, env);
   if (path === "/api/summary-targets" && request.method === "POST") return handleSummaryTargets(request, env);
   if (path === "/api/report-settings" && request.method === "POST") return handleReportSettings(request, env);
-  if (path === "/api/users" && request.method === "PUT") return handleUsers(request, env);
   if (path === "/api/report-pdf" && request.method === "GET") return handleReportPdf(request, env);
   if (path === "/api/report-send" && request.method === "POST") return handleReportSend(request, env);
 

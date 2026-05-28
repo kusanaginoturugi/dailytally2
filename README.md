@@ -3,7 +3,7 @@
 旧 [Dailytally](../Dailytally) の作り直し版。基本機能はそのままで、テーブル設計を正規化した「普通の DB ウェブアプリケーション」構造にしている。
 
 - ランタイム: Cloudflare Workers + D1 + Browser Rendering
-- ストレージ: D1 を正規化テーブルで使用 (`fellowships`, `ceremonies`, `tally_items`, `tallies`, `fellowship_targets`, `summary_target_overrides`, `users`, `report_settings`, `report_history`, `app_settings`)
+- ストレージ: D1 を正規化テーブルで使用 (`fellowships`, `ceremonies`, `tally_items`, `tallies`, `fellowship_targets`, `summary_target_overrides`, `report_settings`, `report_history`, `app_settings`)
 - 認証: authentik OIDC または SSO ヘッダ (`x-dailytally-*` / `x-authentik-*`)
 - フロント: 素の JS / HTML / CSS (旧版を新 API に合わせて書き直し)
 
@@ -17,7 +17,7 @@ dailytally2/
 ├── src/
 │   ├── lib/            日付・cookie・認証・レスポンスのヘルパ
 │   ├── routes/         /api/* と /auth/* のハンドラ
-│   ├── services/       護摩供・集計・目標・ユーザー・報告・PDF・送信
+│   ├── services/       護摩供・集計・目標・報告・PDF・送信
 │   └── worker.js       エントリポイント (fetch / scheduled)
 ├── package.json
 └── wrangler.toml
@@ -132,7 +132,6 @@ npx wrangler d1 execute dailytally2 --remote --file migration.sql
 | POST | `/api/fellowship-targets` | 伝道会別目標を更新 |
 | POST | `/api/summary-targets` | 合計ページの目標上書き (admin) |
 | POST | `/api/report-settings` | オンライン報告設定 (admin) |
-| PUT  | `/api/users` | ユーザー一覧の置換 (admin) |
 | GET  | `/api/report-pdf` | 集計 PDF を生成 (admin) |
 | POST | `/api/report-send` | 手動送信を実行 (admin) |
 

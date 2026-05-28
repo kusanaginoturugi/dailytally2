@@ -61,16 +61,6 @@ CREATE TABLE summary_target_overrides (
   UNIQUE(ceremony_id, tally_item_id)
 );
 
-CREATE TABLE users (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  login_id       TEXT NOT NULL UNIQUE,
-  fellowship_id  INTEGER REFERENCES fellowships(id) ON DELETE SET NULL,
-  name           TEXT,
-  email          TEXT,
-  role           TEXT,
-  last_login_at  TEXT
-);
-
 CREATE TABLE report_settings (
   id                INTEGER PRIMARY KEY CHECK (id = 1),
   enabled           INTEGER NOT NULL DEFAULT 0,

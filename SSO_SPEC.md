@@ -120,7 +120,7 @@ SSOヘッダーが無い場合は空の値を返します。
 }
 ```
 
-管理者用のエンドポイント (`/api/ceremony-settings`、`/api/summary-targets`、`/api/report-settings`、`/api/users`、`/api/report-pdf`、`/api/report-send`) は `x-dailytally-role: admin` のときだけ受け付けます。
+管理者用のエンドポイント (`/api/ceremony-settings`、`/api/summary-targets`、`/api/report-settings`、`/api/report-pdf`、`/api/report-send`) は `x-dailytally-role: admin` のときだけ受け付けます。
 
 ## 注意点
 
