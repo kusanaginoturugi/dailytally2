@@ -42,8 +42,8 @@ main {
 }
 
 .settings {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
   gap: 14px 18px;
   margin-bottom: 0;
 }
@@ -604,6 +604,10 @@ main {
 }
 
 @media (max-width: 640px) {
+  .settings {
+    grid-template-columns: 1fr;
+  }
+
   .settings label {
     width: 100%;
     justify-content: space-between;
