@@ -169,6 +169,13 @@ function canEditFellowship(name) {
   return state.user.fellowship === name;
 }
 
+function canEditFellowshipTarget(name) {
+  if (!canEditFellowship(name)) return false;
+  if (canAccessAdmin()) return true;
+  const ceremony = getActiveCeremony();
+  return !ceremony?.beginAt || todayISO() <= ceremony.beginAt;
+}
+
 function todayISO() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
@@ -655,7 +662,7 @@ function renderInputPage(fellowshipName) {
   for (const item of items) {
     const td = document.createElement("td");
     const current = getFellowshipTargetValue(fellowship.id, item.id);
-    if (editable) {
+    if (canEditFellowshipTarget(fellowshipName)) {
       const input = createNumberInput(current, async (raw) => {
         const value = Math.max(0, Number(raw) || 0);
         setLocalFellowshipTarget(fellowship.id, item.id, value);
