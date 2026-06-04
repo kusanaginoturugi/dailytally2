@@ -241,6 +241,7 @@ main {
 
 .data-table input {
   width: 96px;
+  box-sizing: border-box;
   padding: 4px;
   border: 1px solid #a1a1aa;
   border-radius: 6px;
@@ -285,13 +286,14 @@ main {
 
 .data-table input.target-input {
   width: 96px;
+  box-sizing: border-box;
   border: 1px solid #a1a1aa;
   border-radius: 6px;
   padding: 4px;
 }
 
 .input-page .data-table {
-  min-width: 760px;
+  min-width: 960px;
   table-layout: fixed;
 }
 
@@ -301,7 +303,7 @@ main {
 }
 
 .input-page .data-table thead th {
-  width: 72px;
+  width: 92px;
   white-space: normal;
   font-size: 14px;
   line-height: 1.25;
@@ -315,7 +317,7 @@ main {
 
 .input-page .data-table input,
 .input-page .data-table input.target-input {
-  width: 52px;
+  width: 68px;
 }
 
 .input-page .data-table input.compact-number,
@@ -330,7 +332,7 @@ main {
 }
 
 .input-page .input-value {
-  min-width: 52px;
+  min-width: 68px;
 }
 
 .input-page .input-unit {
