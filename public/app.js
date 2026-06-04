@@ -849,24 +849,19 @@ function renderAdminPage() {
     const c = getActiveCeremony();
     if (!c) return;
     const beginAt = parseAdminDateInput(weekStart.value) || todayISO();
-    const endAt = parseAdminDateInput(weekEnd.value) || addDaysISO(beginAt, 7);
+    const endAt = parseAdminDateInput(weekEnd.value) || c.endAt || addDaysISO(beginAt, 7);
     const seekersStartAt = parseAdminDateInput(seekerStart.value);
-    const adjustedEndAt = endAt < beginAt ? addDaysISO(beginAt, 7) : endAt;
     await saveCeremonySettings({
       beginAt,
-      endAt: adjustedEndAt,
+      endAt,
       seekersStartAt,
     });
     weekStart.value = formatShortDate(beginAt);
-    weekEnd.value = formatShortDate(adjustedEndAt);
+    weekEnd.value = formatShortDate(endAt);
     seekerStart.value = formatShortDate(seekersStartAt);
   };
 
-  weekStart.addEventListener("change", async () => {
-    const beginAt = parseAdminDateInput(weekStart.value) || todayISO();
-    weekEnd.value = formatShortDate(addDaysISO(beginAt, 7));
-    await persistDates();
-  });
+  weekStart.addEventListener("change", persistDates);
   weekEnd.addEventListener("change", persistDates);
   seekerStart.addEventListener("change", persistDates);
 
