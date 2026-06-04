@@ -223,7 +223,7 @@ function getWeekDates() {
   if (!ceremony?.beginAt || !ceremony?.endAt) return [];
   const dates = [];
   let current = ceremony.beginAt;
-  while (current <= ceremony.endAt && dates.length < 366) {
+  while (current < ceremony.endAt && dates.length < 366) {
     dates.push({ id: current, label: formatShortDate(current) });
     current = addDaysISO(current, 1);
   }
