@@ -34,6 +34,7 @@ import {
 } from "../services/reports.js";
 import { generateSummaryPdf } from "../services/pdf.js";
 import { runManualReport } from "../services/report-sender.js";
+import { todayISO } from "../lib/dates.js";
 
 async function readBootstrap(env) {
   const [fellowships, ceremonies, itemsByCeremony] = await Promise.all([
@@ -184,6 +185,11 @@ async function handleFellowshipTargets(request, env) {
     return badRequest("ceremonyId, fellowshipName, itemId are required");
   }
   if (!canWriteFellowship(request, fellowshipName)) {
+    return forbidden();
+  }
+  const ceremony = await getCeremony(env.DB, ceremonyId);
+  if (!ceremony) return notFound();
+  if (!canWriteAdmin(request) && ceremony.beginAt && todayISO() > ceremony.beginAt) {
     return forbidden();
   }
   const fellowship = await getFellowshipByName(env.DB, fellowshipName);

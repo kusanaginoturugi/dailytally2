@@ -169,6 +169,13 @@ function canEditFellowship(name) {
   return state.user.fellowship === name;
 }
 
+function canEditFellowshipTarget(name) {
+  if (!canEditFellowship(name)) return false;
+  if (canAccessAdmin()) return true;
+  const ceremony = getActiveCeremony();
+  return !ceremony?.beginAt || todayISO() <= ceremony.beginAt;
+}
+
 function todayISO() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
@@ -223,7 +230,7 @@ function getWeekDates() {
   if (!ceremony?.beginAt || !ceremony?.endAt) return [];
   const dates = [];
   let current = ceremony.beginAt;
-  while (current <= ceremony.endAt && dates.length < 366) {
+  while (current < ceremony.endAt && dates.length < 366) {
     dates.push({ id: current, label: formatShortDate(current) });
     current = addDaysISO(current, 1);
   }
@@ -655,7 +662,7 @@ function renderInputPage(fellowshipName) {
   for (const item of items) {
     const td = document.createElement("td");
     const current = getFellowshipTargetValue(fellowship.id, item.id);
-    if (editable) {
+    if (canEditFellowshipTarget(fellowshipName)) {
       const input = createNumberInput(current, async (raw) => {
         const value = Math.max(0, Number(raw) || 0);
         setLocalFellowshipTarget(fellowship.id, item.id, value);
@@ -849,24 +856,19 @@ function renderAdminPage() {
     const c = getActiveCeremony();
     if (!c) return;
     const beginAt = parseAdminDateInput(weekStart.value) || todayISO();
-    const endAt = parseAdminDateInput(weekEnd.value) || addDaysISO(beginAt, 7);
+    const endAt = parseAdminDateInput(weekEnd.value) || c.endAt || addDaysISO(beginAt, 7);
     const seekersStartAt = parseAdminDateInput(seekerStart.value);
-    const adjustedEndAt = endAt < beginAt ? addDaysISO(beginAt, 7) : endAt;
     await saveCeremonySettings({
       beginAt,
-      endAt: adjustedEndAt,
+      endAt,
       seekersStartAt,
     });
     weekStart.value = formatShortDate(beginAt);
-    weekEnd.value = formatShortDate(adjustedEndAt);
+    weekEnd.value = formatShortDate(endAt);
     seekerStart.value = formatShortDate(seekersStartAt);
   };
 
-  weekStart.addEventListener("change", async () => {
-    const beginAt = parseAdminDateInput(weekStart.value) || todayISO();
-    weekEnd.value = formatShortDate(addDaysISO(beginAt, 7));
-    await persistDates();
-  });
+  weekStart.addEventListener("change", persistDates);
   weekEnd.addEventListener("change", persistDates);
   seekerStart.addEventListener("change", persistDates);
 
