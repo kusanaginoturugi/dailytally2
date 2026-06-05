@@ -6,7 +6,7 @@ compatibility_flags = [ "nodejs_compat" ]
 [vars]
 AUTHENTIK_ISSUER = "https://auth.showway.biz/application/o/dailytally2/"
 AUTHENTIK_CLIENT_ID = "zaLBuoRHriNUqtrRQD7KYXYaVVcUyOHEdvp2uT9y"
-REPORT_REMOTE_SUBMIT = "false"
+REPORT_REMOTE_SUBMIT = "true"
 TENDO_ACCOUNT = "shigurenoki"
 REPORT_NOTIFY_FROM = "Dailytally2 <notify@showway.biz>"
 # REPORT_ONLINE_FORM_URL = ""
