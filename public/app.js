@@ -928,9 +928,20 @@ async function saveSummaryPdf(button) {
 function renderSummaryPage() {
   const template = document.getElementById("summaryPageTemplate");
   const content = template.content.cloneNode(true);
-  content.querySelector("#summaryPdfButton").addEventListener("click", (event) => {
-    saveSummaryPdf(event.currentTarget);
-  });
+  const pdfButton = content.querySelector("#summaryPdfButton");
+  if (canAccessAdmin()) {
+    pdfButton.addEventListener("click", (event) => {
+      saveSummaryPdf(event.currentTarget);
+    });
+  } else {
+    pdfButton.disabled = true;
+    pdfButton.classList.add("is-locked");
+    pdfButton.title = "PDF 出力は管理者のみ利用できます";
+    const note = document.createElement("span");
+    note.className = "summary-pdf-note";
+    note.textContent = "PDF 出力は管理者のみ利用できます";
+    pdfButton.insertAdjacentElement("afterend", note);
+  }
   const items = getActiveItems();
   content.querySelector("[data-summary-title]").textContent =
     `～${getCeremonyName()}　集計表～　報告数は累計数です`;

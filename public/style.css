@@ -359,7 +359,14 @@ main {
 .summary-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
+}
+
+.summary-pdf-note {
+  color: var(--muted, #777);
+  font-size: 0.9em;
 }
 
 .summary-pdf-button {
@@ -381,6 +388,10 @@ main {
 .summary-pdf-button:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.summary-pdf-button.is-locked:disabled {
+  cursor: not-allowed;
 }
 
 .summary-print-area {
