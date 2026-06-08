@@ -10,7 +10,7 @@ INSERT INTO fellowships (id, name, tendo_code, sort_order) VALUES
   (6, '駿天',     '32205', 6),
   (7, '埼玉',     '31101', 7),
   (8, '千葉',     '31201', 8),
-  (9, '山梨',     NULL,    9);
+  (9, '山梨',     '31901', 9);
 
 -- 護摩供
 INSERT INTO ceremonies (id, name, next_number, seekers_start_at, sort_order) VALUES
