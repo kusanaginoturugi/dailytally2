@@ -102,6 +102,15 @@
             <ul id="reportHistoryList"></ul>
           </div>
         </section>
+        <details class="masters-sync">
+          <summary>伝道会管理 (マスタ同期と集計対象の変更)</summary>
+          <div class="masters-sync-actions">
+            <button id="syncMastersButton" class="sync-masters-button" type="button">マスタ同期</button>
+            <span id="syncMastersResult" class="sync-masters-result"></span>
+          </div>
+          <p class="masters-sync-note">集計対象とする伝道会にチェックを入れてください (チェック外しても master 側は変わりません)。</p>
+          <div id="fellowshipEnabledList" class="fellowship-enabled-list"></div>
+        </details>
       </section>
     </template>
 

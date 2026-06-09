@@ -9,6 +9,8 @@ AUTHENTIK_CLIENT_ID = "zaLBuoRHriNUqtrRQD7KYXYaVVcUyOHEdvp2uT9y"
 REPORT_REMOTE_SUBMIT = "true"
 TENDO_ACCOUNT = "shigurenoki"
 REPORT_NOTIFY_FROM = "Dailytally2 <notify@showway.biz>"
+# osystem-masters 本番 URL（デプロイ後に有効化）
+# MASTERS_URL = "https://osystem-masters.kusanaginoturugi.workers.dev"
 # REPORT_ONLINE_FORM_URL = ""
 # REPORT_ONLINE_FILE_FIELD = "up_file[]"
 

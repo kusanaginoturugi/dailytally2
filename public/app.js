@@ -895,8 +895,88 @@ function renderAdminPage() {
     sendManualReport(manualButton, manualUnlock, reportStatus, historyList, manualResult);
   });
 
+  const syncMastersButton = content.querySelector("#syncMastersButton");
+  const syncMastersResult = content.querySelector("#syncMastersResult");
+  const fellowshipEnabledList = content.querySelector("#fellowshipEnabledList");
+  syncMastersButton.addEventListener("click", async () => {
+    await syncMasters(syncMastersButton, syncMastersResult);
+    await loadFellowshipEnabledList(fellowshipEnabledList);
+  });
+  loadFellowshipEnabledList(fellowshipEnabledList);
+
   pageContainer.innerHTML = "";
   pageContainer.appendChild(content);
+}
+
+async function loadFellowshipEnabledList(container) {
+  try {
+    const data = await apiGet("/api/fellowships/all");
+    container.innerHTML = "";
+    for (const fellowship of data.fellowships || []) {
+      const label = document.createElement("label");
+      label.className = "fellowship-enabled-item";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = fellowship.enabled;
+      checkbox.addEventListener("change", async () => {
+        checkbox.disabled = true;
+        try {
+          const result = await apiSend("/api/fellowships/enabled", {
+            id: fellowship.id,
+            enabled: checkbox.checked,
+          });
+          if (!result.ok) {
+            throw new Error(`保存に失敗しました (${result.status})`);
+          }
+          const remote = await apiGet("/api/bootstrap");
+          Object.assign(state, normalizeRemoteState(remote));
+          render();
+        } catch (error) {
+          console.error("伝道会の有効/無効の切り替えに失敗しました。", error);
+          checkbox.checked = !checkbox.checked;
+        } finally {
+          checkbox.disabled = false;
+        }
+      });
+      label.appendChild(checkbox);
+      const name = document.createElement("span");
+      name.className = "fellowship-enabled-name";
+      name.textContent = fellowship.name;
+      label.appendChild(name);
+      container.appendChild(label);
+    }
+  } catch (error) {
+    console.error("伝道会一覧の読み込みに失敗しました。", error);
+    container.textContent = "伝道会一覧の読み込みに失敗しました。";
+  }
+}
+
+async function syncMasters(button, resultEl) {
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "同期中...";
+  resultEl.textContent = "";
+  try {
+    const result = await apiSend("/api/sync/masters", {});
+    if (!result.ok) {
+      throw new Error(result.payload?.error || `同期に失敗しました (${result.status})`);
+    }
+    const payload = result.payload || {};
+    resultEl.textContent = `同期完了: ${payload.count}件 (master 最終更新: ${payload.masterUpdatedAt || "-"})`;
+    try {
+      const remote = await apiGet("/api/bootstrap");
+      Object.assign(state, normalizeRemoteState(remote));
+      render();
+    } catch (refreshError) {
+      console.error("同期後の再読込に失敗しました。", refreshError);
+    }
+  } catch (error) {
+    console.error("マスタ同期に失敗しました。", error);
+    resultEl.textContent = `同期エラー: ${error.message || error}`;
+  } finally {
+    button.textContent = originalText;
+    button.disabled = false;
+  }
 }
 
 async function saveSummaryPdf(button) {

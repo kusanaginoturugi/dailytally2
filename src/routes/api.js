@@ -15,7 +15,12 @@ import {
   setActiveCeremonyId,
   updateCeremonyDates,
 } from "../services/ceremonies.js";
-import { listFellowships, getFellowshipByName } from "../services/fellowships.js";
+import {
+  listFellowships,
+  listAllFellowships,
+  setFellowshipEnabled,
+  getFellowshipByName,
+} from "../services/fellowships.js";
 import {
   getPreviousCumulativeValue,
   listTallies,
@@ -34,6 +39,7 @@ import {
 } from "../services/reports.js";
 import { generateSummaryPdf } from "../services/pdf.js";
 import { runManualReport } from "../services/report-sender.js";
+import { syncFellowships } from "../services/master-sync.js";
 import { todayISO } from "../lib/dates.js";
 
 async function readBootstrap(env) {
@@ -266,6 +272,42 @@ export async function handleApi(request, env) {
   if (path === "/api/report-settings" && request.method === "POST") return handleReportSettings(request, env);
   if (path === "/api/report-pdf" && request.method === "GET") return handleReportPdf(request, env);
   if (path === "/api/report-send" && request.method === "POST") return handleReportSend(request, env);
+  if (path === "/api/sync/masters" && request.method === "POST") return handleSyncMasters(request, env);
+  if (path === "/api/fellowships/all" && request.method === "GET") return handleListAllFellowships(request, env);
+  if (path === "/api/fellowships/enabled" && request.method === "POST") return handleFellowshipEnabled(request, env);
 
   return notFound();
+}
+
+async function handleSyncMasters(request, env) {
+  if (!canWriteAdmin(request)) {
+    return forbidden();
+  }
+  try {
+    const result = await syncFellowships(env);
+    return jsonResponse({ ok: true, ...result });
+  } catch (error) {
+    return jsonResponse({ ok: false, error: error?.message || String(error) }, { status: 502 });
+  }
+}
+
+async function handleListAllFellowships(request, env) {
+  if (!canWriteAdmin(request)) {
+    return forbidden();
+  }
+  const fellowships = await listAllFellowships(env.DB);
+  return jsonResponse({ fellowships });
+}
+
+async function handleFellowshipEnabled(request, env) {
+  if (!canWriteAdmin(request)) {
+    return forbidden();
+  }
+  const payload = await request.json().catch(() => ({}));
+  const id = Number(payload.id);
+  if (!id) {
+    return badRequest("id is required");
+  }
+  await setFellowshipEnabled(env.DB, id, Boolean(payload.enabled));
+  return jsonResponse({ ok: true });
 }

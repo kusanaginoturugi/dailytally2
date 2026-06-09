@@ -9,3 +9,6 @@ TENDO_PASSWORD=
 RESEND_API_KEY=
 REPORT_NOTIFY_FROM=
 REPORT_REMOTE_SUBMIT=false
+# osystem-masters の URL。ローカル開発時は別ポートで上げた dev server を指す。
+# 例: MASTERS_URL=http://localhost:8787
+MASTERS_URL=
