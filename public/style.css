@@ -610,6 +610,16 @@ main {
   text-align: left;
 }
 
+.admin-readonly-banner {
+  padding: 10px 14px;
+  background: #fffbe6;
+  border: 1px solid #f1d96b;
+  border-radius: 6px;
+  color: #6b5a00;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
 .masters-sync {
   margin-top: 24px;
   padding-top: 20px;

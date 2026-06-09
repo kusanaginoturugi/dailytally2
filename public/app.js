@@ -158,20 +158,24 @@ function isAuthenticated() {
   return Boolean(state.user);
 }
 
-function canAccessAdmin() {
-  if (!isAuthenticated()) return true;
-  return state.user.role === "admin";
+function canEditAdmin() {
+  return isAuthenticated() && state.user.role === "admin";
+}
+
+// 管理ページの表示可否。役割によらず常に閲覧できる (操作可否は canEditAdmin)。
+function canViewAdmin() {
+  return true;
 }
 
 function canEditFellowship(name) {
-  if (!isAuthenticated()) return true;
-  if (canAccessAdmin()) return true;
+  if (!isAuthenticated()) return false;
+  if (canEditAdmin()) return true;
   return state.user.fellowship === name;
 }
 
 function canEditFellowshipTarget(name) {
   if (!canEditFellowship(name)) return false;
-  if (canAccessAdmin()) return true;
+  if (canEditAdmin()) return true;
   const ceremony = getActiveCeremony();
   return !ceremony?.beginAt || todayISO() <= ceremony.beginAt;
 }
@@ -353,12 +357,12 @@ function getSavedActiveTab() {
   if (isKnownTab(requested)) return requested;
   const saved = localStorage.getItem(ACTIVE_TAB_KEY);
   if (isKnownTab(saved)) return saved;
-  return canAccessAdmin() ? "admin" : (state.user?.fellowship || fellowshipNames()[0]);
+  return canEditAdmin() ? "admin" : (state.user?.fellowship || fellowshipNames()[0]);
 }
 
 function isKnownTab(name) {
   if (!name) return false;
-  if (name === "admin") return canAccessAdmin();
+  if (name === "admin") return canViewAdmin();
   if (name === "summary") return true;
   return fellowshipNames().includes(name);
 }
@@ -529,7 +533,7 @@ function renderTabs() {
   });
   tabButtons.appendChild(summaryButton);
 
-  if (canAccessAdmin()) {
+  if (canViewAdmin()) {
     const adminButton = document.createElement("button");
     adminButton.className = `tab-button ${activeTab === "admin" ? "active" : ""}`;
     adminButton.textContent = "管理ページ";
@@ -904,6 +908,16 @@ function renderAdminPage() {
   });
   loadFellowshipEnabledList(fellowshipEnabledList);
 
+  if (!canEditAdmin()) {
+    content.querySelectorAll("input, button, select, textarea").forEach((el) => {
+      el.disabled = true;
+    });
+    const banner = document.createElement("p");
+    banner.className = "admin-readonly-banner";
+    banner.textContent = "閲覧モード: 操作は管理者のみ可能です。";
+    content.querySelector(".admin-page")?.prepend(banner);
+  }
+
   pageContainer.innerHTML = "";
   pageContainer.appendChild(content);
 }
@@ -918,6 +932,9 @@ async function loadFellowshipEnabledList(container) {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.checked = fellowship.enabled;
+      if (!canEditAdmin()) {
+        checkbox.disabled = true;
+      }
       checkbox.addEventListener("change", async () => {
         checkbox.disabled = true;
         try {
@@ -1009,7 +1026,7 @@ function renderSummaryPage() {
   const template = document.getElementById("summaryPageTemplate");
   const content = template.content.cloneNode(true);
   const pdfButton = content.querySelector("#summaryPdfButton");
-  if (canAccessAdmin()) {
+  if (canEditAdmin()) {
     pdfButton.addEventListener("click", (event) => {
       saveSummaryPdf(event.currentTarget);
     });
@@ -1043,7 +1060,7 @@ function renderSummaryPage() {
   for (const item of items) {
     const td = document.createElement("td");
     const value = getSummaryTargetValue(item.id, targetTotals[item.id]);
-    if (canAccessAdmin()) {
+    if (canEditAdmin()) {
       const input = createNumberInput(value, async (raw) => {
         const v = Math.max(0, Number(raw) || 0);
         setLocalSummaryOverride(item.id, v);
@@ -1102,7 +1119,7 @@ function render() {
   if (activeTab === "summary") {
     renderSummaryPage();
   } else if (activeTab === "admin") {
-    if (!canAccessAdmin()) {
+    if (!canViewAdmin()) {
       activeTab = state.user?.fellowship || fellowshipNames()[0] || "summary";
       render();
       return;

@@ -116,7 +116,7 @@ export function hasUserIdentity(user) {
 export function canWriteFellowship(request, fellowshipName) {
   const user = getCurrentUser(request);
   if (!hasUserIdentity(user)) {
-    return true;
+    return false;
   }
   return user.role === "admin" || user.fellowship === fellowshipName;
 }
@@ -124,7 +124,7 @@ export function canWriteFellowship(request, fellowshipName) {
 export function canWriteAdmin(request) {
   const user = getCurrentUser(request);
   if (!hasUserIdentity(user)) {
-    return true;
+    return false;
   }
   return user.role === "admin";
 }

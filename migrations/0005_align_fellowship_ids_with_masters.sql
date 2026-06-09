@@ -14,7 +14,9 @@
 -- sort_order は dailytally2 独自の業務順を維持する。
 -- 以降はこの id が master と一致しているので、同期は INSERT OR REPLACE で素直に動く。
 
-PRAGMA foreign_keys = OFF;
+-- D1 は PRAGMA foreign_keys = OFF を受け付けないため、defer_foreign_keys を使う。
+-- migration 全体が 1 トランザクションで実行されるので、COMMIT 時に整合性が取れていればよい。
+PRAGMA defer_foreign_keys = TRUE;
 
 -- 1. tallies.fellowship_id を master id に書き換え
 UPDATE tallies SET fellowship_id = 18 WHERE fellowship_id = 1;
@@ -50,5 +52,3 @@ INSERT INTO fellowships (id, name, tendo_code, sort_order) VALUES
   (15, '埼玉',     '31101', 7),
   (16, '千葉',     '31201', 8),
   (25, '山梨',     '31901', 9);
-
-PRAGMA foreign_keys = ON;
