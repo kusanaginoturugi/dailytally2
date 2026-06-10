@@ -1,12 +1,13 @@
 :root {
   color-scheme: light;
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-  --bg: #f8fafc;
-  --card: #ffffff;
-  --line: #d4d4d8;
-  --ink: #18181b;
-  --accent: #0f766e;
-  --accent-soft: #ccfbf1;
+  /* 値は osystem/design/base.css の色味に寄せたもの (紫アクセント + 青みグレー)。 */
+  --bg: #edf2fb;
+  --card: #fffdfd;
+  --line: #d7dfef;
+  --ink: #495567;
+  --accent: #907fc0;
+  --accent-soft: #f3e6f2;
 }
 
 * {
@@ -30,7 +31,7 @@ h1 {
 
 .user-status {
   margin: 8px 0 0;
-  color: #52525b;
+  color: #5e6a82;
   font-size: 14px;
   font-weight: 700;
 }
@@ -60,7 +61,7 @@ main {
 .settings select {
   min-width: 7.5em;
   padding: 6px 10px;
-  border: 1px solid #a1a1aa;
+  border: 1px solid #c0c8d9;
   border-radius: 8px;
   font: inherit;
 }
@@ -76,7 +77,7 @@ main {
 .report-settings {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #e4e4e7;
+  border-top: 1px solid #d7dfef;
 }
 
 .report-settings-header {
@@ -118,14 +119,14 @@ main {
   width: 100%;
   min-width: 0;
   padding: 7px 10px;
-  border: 1px solid #a1a1aa;
+  border: 1px solid #c0c8d9;
   border-radius: 8px;
   font: inherit;
 }
 
 .report-status {
   margin: 12px 0 0;
-  color: #52525b;
+  color: #5e6a82;
   font-size: 14px;
 }
 
@@ -168,14 +169,14 @@ main {
 
 .manual-report-result {
   margin: 10px 0 0;
-  color: #0f766e;
+  color: #907fc0;
   font-size: 14px;
   font-weight: 700;
 }
 
 .report-history {
   margin-top: 16px;
-  color: #3f3f46;
+  color: #3a4458;
   font-size: 14px;
 }
 
@@ -243,7 +244,7 @@ main {
   width: 96px;
   box-sizing: border-box;
   padding: 4px;
-  border: 1px solid #a1a1aa;
+  border: 1px solid #c0c8d9;
   border-radius: 6px;
   text-align: right;
 }
@@ -265,7 +266,7 @@ main {
 
 .data-table .target-row th,
 .data-table .target-row td {
-  background: #f4f4f5;
+  background: #edf2fb;
   font-weight: 700;
 }
 
@@ -276,10 +277,10 @@ main {
 .input-warning {
   margin: 0 0 10px;
   padding: 8px 10px;
-  border: 1px solid #f87171;
+  border: 1px solid #d49a9a;
   border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: #f8eaea;
+  color: #774545;
   font-size: 14px;
   font-weight: 700;
 }
@@ -287,7 +288,7 @@ main {
 .data-table input.target-input {
   width: 96px;
   box-sizing: border-box;
-  border: 1px solid #a1a1aa;
+  border: 1px solid #c0c8d9;
   border-radius: 6px;
   padding: 4px;
 }
@@ -327,8 +328,8 @@ main {
 }
 
 .input-page .data-table input.invalid-number {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.16);
+  border-color: #925757;
+  box-shadow: 0 0 0 2px rgba(180, 106, 106, 0.22);
 }
 
 .input-page .input-value {
@@ -343,7 +344,7 @@ main {
 
 .data-table tfoot th,
 .data-table tfoot td {
-  background: #f4f4f5;
+  background: #edf2fb;
   font-weight: 700;
 }
 
@@ -365,7 +366,7 @@ main {
 }
 
 .summary-pdf-note {
-  color: var(--muted, #777);
+  color: var(--muted, #7d88a0);
   font-size: 0.9em;
 }
 
@@ -623,14 +624,14 @@ main {
 .masters-sync {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #e4e4e7;
+  border-top: 1px solid #d7dfef;
 }
 
 .masters-sync > summary {
   cursor: pointer;
   font-size: 16px;
   font-weight: 700;
-  color: #555;
+  color: #7d88a0;
   list-style: revert;
   padding: 4px 0;
 }
@@ -654,12 +655,12 @@ main {
 
 .sync-masters-result {
   font-size: 14px;
-  color: #555;
+  color: #7d88a0;
 }
 
 .masters-sync-note {
   font-size: 14px;
-  color: #666;
+  color: #7d88a0;
   margin: 12px 0 10px;
 }
 
