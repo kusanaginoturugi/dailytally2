@@ -171,7 +171,7 @@ function generate(state) {
   lines.push(
     `UPDATE report_settings SET ` +
       `enabled = ${sqlBool(r.enabled)}, ` +
-      `send_time = ${sqlStr(r.sendTime || "22:00")}, ` +
+      `send_time = '23:55', ` +
       `sender_name = ${sqlStr(r.senderName)}, ` +
       `branch_name = ${sqlStr(r.branchName)}, ` +
       `branch_code = ${sqlStr(r.branchCode)}, ` +

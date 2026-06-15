@@ -1,6 +1,7 @@
 // dailytally2 frontend
 const REFRESH_INTERVAL_MS = 15000;
 const ACTIVE_TAB_KEY = "daily-tally2-active-tab";
+const REPORT_SEND_TIME = "23:55";
 
 const appTitle = document.getElementById("appTitle");
 const userStatus = document.getElementById("userStatus");
@@ -23,7 +24,7 @@ init();
 function defaultReportSettings() {
   return {
     enabled: false,
-    sendTime: "22:00",
+    sendTime: REPORT_SEND_TIME,
     senderName: "聖明王院事務局",
     branchName: "聖明王院",
     branchCode: "99300",
@@ -756,7 +757,7 @@ function reportStatusText() {
   const status = r.enabled ? "有効" : "無効";
   const success = r.lastSuccessAt ? ` 最終成功: ${r.lastSuccessAt}` : "";
   const error = r.lastError ? ` 最終エラー: ${r.lastError}` : "";
-  return `状態: ${status} / 期間中は毎日 ${r.sendTime} に送信${success}${error}`;
+  return `状態: ${status} / 開始日から最終日まで毎日 ${r.sendTime} に送信${success}${error}`;
 }
 
 function renderReportHistory(listEl) {
@@ -842,7 +843,7 @@ function renderAdminPage() {
   seekerStart.value = formatShortDate(ceremony?.seekersStartAt);
 
   reportEnabled.checked = Boolean(state.reportSettings.enabled);
-  reportSendTime.value = state.reportSettings.sendTime || "22:00";
+  reportSendTime.value = REPORT_SEND_TIME;
   reportSenderName.value = state.reportSettings.senderName || "";
   reportBranchName.value = state.reportSettings.branchName || "";
   reportBranchCode.value = state.reportSettings.branchCode || "";
@@ -879,7 +880,7 @@ function renderAdminPage() {
   const persistReport = async () => {
     await saveReportSettings({
       enabled: reportEnabled.checked,
-      sendTime: reportSendTime.value || "22:00",
+      sendTime: REPORT_SEND_TIME,
       senderName: reportSenderName.value.trim(),
       branchName: reportBranchName.value.trim(),
       branchCode: reportBranchCode.value.trim() || "99300",

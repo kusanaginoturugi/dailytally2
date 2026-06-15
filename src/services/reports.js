@@ -1,9 +1,11 @@
 import { formatJSTTimestamp, nowJST } from "../lib/dates.js";
 
+export const REPORT_SEND_TIME = "23:55";
+
 function rowToReportSettings(row) {
   return {
     enabled: Boolean(row.enabled),
-    sendTime: row.send_time || "22:00",
+    sendTime: row.send_time || REPORT_SEND_TIME,
     senderName: row.sender_name || "",
     branchName: row.branch_name || "",
     branchCode: row.branch_code || "",
@@ -22,7 +24,7 @@ export async function getReportSettings(db) {
   if (!row) {
     return rowToReportSettings({
       enabled: 0,
-      send_time: "22:00",
+      send_time: REPORT_SEND_TIME,
       sender_name: "",
       branch_name: "",
       branch_code: "",
@@ -42,7 +44,7 @@ export async function updateReportSettings(db, fields) {
     )
     .bind(
       fields.enabled ? 1 : 0,
-      fields.sendTime || "22:00",
+      fields.sendTime || REPORT_SEND_TIME,
       fields.senderName || "",
       fields.branchName || "",
       fields.branchCode || "",

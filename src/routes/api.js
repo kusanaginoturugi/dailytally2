@@ -33,6 +33,7 @@ import {
   upsertSummaryTargetOverride,
 } from "../services/targets.js";
 import {
+  REPORT_SEND_TIME,
   getReportSettings,
   listReportHistory,
   updateReportSettings,
@@ -222,7 +223,7 @@ async function handleReportSettings(request, env) {
   const body = await request.json();
   await updateReportSettings(env.DB, {
     enabled: Boolean(body.enabled),
-    sendTime: body.sendTime || "22:00",
+    sendTime: REPORT_SEND_TIME,
     senderName: body.senderName || "",
     branchName: body.branchName || "",
     branchCode: body.branchCode || "",

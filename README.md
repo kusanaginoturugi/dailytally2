@@ -139,7 +139,7 @@ npx wrangler d1 execute dailytally2 --remote --file migration.sql
 
 ## オンライン報告
 
-旧 Dailytally と同じく、管理ページで送信時刻・送信者名・伝道会名・通知先メールを設定。15 分間隔の cron で `report_settings.send_time` を判定し、期間中なら自動送信する。
+旧 Dailytally と同じく、管理ページで送信時刻・送信者名・伝道会名・通知先メールを設定。15 分間隔の cron で `report_settings.send_time` を判定し、開始日から最終日まで毎日 23:55 に自動送信する。
 
 tendo.net への実送信は `REPORT_REMOTE_SUBMIT=true` のときのみ走る。送信ボタンは常に `mirokuji` (弥勒寺へ送信)。
 

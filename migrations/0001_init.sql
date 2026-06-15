@@ -64,7 +64,7 @@ CREATE TABLE summary_target_overrides (
 CREATE TABLE report_settings (
   id                INTEGER PRIMARY KEY CHECK (id = 1),
   enabled           INTEGER NOT NULL DEFAULT 0,
-  send_time         TEXT NOT NULL DEFAULT '22:00',
+  send_time         TEXT NOT NULL DEFAULT '23:55',
   sender_name       TEXT,
   branch_name       TEXT,
   branch_code       TEXT,

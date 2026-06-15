@@ -140,7 +140,7 @@ INSERT INTO tally_items (ceremony_id, item_key, name, summary_name, unit, sort_o
 INSERT INTO report_settings (
   id, enabled, send_time, sender_name, branch_name, branch_code, notify_email
 ) VALUES (
-  1, 0, '22:00', '聖明王院事務局', '聖明王院', '99300', 'jimmyouou@gmail.com'
+  1, 0, '23:55', '聖明王院事務局', '聖明王院', '99300', 'jimmyouou@gmail.com'
 );
 
 -- 現在の護摩供
