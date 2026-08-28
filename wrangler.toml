@@ -14,7 +14,7 @@ MASTERS_URL = "https://osystem-masters.kusanaginoturugi.workers.dev"
 # REPORT_ONLINE_FILE_FIELD = "up_file[]"
 
 [triggers]
-crons = [ "*/15 * * * *" ]
+crons = [ "*/5 * * * *" ]
 
 [browser]
 binding = "BROWSER"

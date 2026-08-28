@@ -755,9 +755,19 @@ function renderInputPage(fellowshipName) {
 function reportStatusText() {
   const r = state.reportSettings;
   const status = r.enabled ? "有効" : "無効";
-  const success = r.lastSuccessAt ? ` 最終成功: ${r.lastSuccessAt}` : "";
+  const scheduledMatch = (r.lastSentKey || "").match(/^\d+:\d{4}-\d{2}-\d{2}:(\d{2}:\d{2})$/);
+  const manualThroughMatch = (r.lastSentKey || "").match(/^manual-through:\d+:(\d{4}-\d{2}-\d{2}):/);
+  const successNote = manualThroughMatch
+    ? ` (${manualThroughMatch[1]}まで手動送信)`
+    : scheduledMatch?.[1] && scheduledMatch[1] !== r.sendTime
+      ? ` (${scheduledMatch[1]}設定時)`
+      : "";
+  const success =
+    r.lastSuccessAt
+      ? ` 前回成功: ${r.lastSuccessAt}${successNote}`
+      : "";
   const error = r.lastError ? ` 最終エラー: ${r.lastError}` : "";
-  return `状態: ${status} / 開始日から最終日まで毎日 ${r.sendTime} に送信${success}${error}`;
+  return `状態: ${status} / 現在設定: 開始日から最終日まで毎日 ${r.sendTime} に送信${success}${error}`;
 }
 
 function renderReportHistory(listEl) {

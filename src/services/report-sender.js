@@ -238,7 +238,7 @@ async function sendNotification(env, settings, subject, body) {
   });
 }
 
-async function sendReport(env, ceremony, settings, sendKey, startMessage) {
+async function sendReport(env, ceremony, settings, sendKey, startMessage, options = {}) {
   const startAt = formatJSTTimestamp();
   await updateReportAttempt(env.DB, { lastAttemptAt: startAt, lastAttemptKey: sendKey, lastError: "" });
   await appendReportHistory(env.DB, {
@@ -251,7 +251,7 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage) {
 
   try {
     const cookie = await tendoLogin(env);
-    const pdfBuffer = await generateSummaryPdf(env, ceremony.id);
+    const pdfBuffer = await generateSummaryPdf(env, ceremony.id, { reportDate: options.reportDate });
     const result = await submitOnlineReport(env, ceremony, settings, cookie, pdfBuffer);
     const successAt = formatJSTTimestamp();
     await updateReportSuccess(env.DB, { lastSuccessAt: successAt, lastSentKey: sendKey });
@@ -321,4 +321,25 @@ export async function runManualReport(env) {
   const settings = await getReportSettings(env.DB);
   const sendKey = `manual:${ceremony.id}:${formatJSTTimestamp()}`;
   await sendReport(env, ceremony, settings, sendKey, "手動送信を開始");
+}
+
+export async function runReportThroughDate(env, reportDate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate || "")) {
+    throw new Error("reportDate must be YYYY-MM-DD");
+  }
+  const ceremonyId = await getActiveCeremonyId(env.DB);
+  if (!ceremonyId) {
+    throw new Error("active ceremony is not set");
+  }
+  const ceremonyRow = await getCeremony(env.DB, ceremonyId);
+  if (!ceremonyRow) {
+    throw new Error(`ceremony ${ceremonyId} not found`);
+  }
+  const ceremony = await ensureCeremonyDates(env.DB, ceremonyRow);
+  if (reportDate < ceremony.beginAt || reportDate > ceremony.endAt) {
+    throw new Error(`reportDate ${reportDate} is outside ceremony range`);
+  }
+  const settings = await getReportSettings(env.DB);
+  const sendKey = `manual-through:${ceremony.id}:${reportDate}:${formatJSTTimestamp()}`;
+  await sendReport(env, ceremony, settings, sendKey, `${reportDate} までの集計を手動送信`, { reportDate });
 }

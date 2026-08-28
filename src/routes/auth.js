@@ -104,7 +104,6 @@ export async function handleAuthCallback(request, env) {
   const user = normalizeOidcUser(claims);
   const session = await createSignedCookieValue(env.SESSION_SECRET, {
     user,
-    accessToken: tokenSet.access_token || "",
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
   });
 

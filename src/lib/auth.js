@@ -134,9 +134,6 @@ export async function readSession(request, env) {
   if (!session || session.exp < Math.floor(Date.now() / 1000)) {
     return null;
   }
-  if (isOidcConfigured(env) && !session.accessToken) {
-    return null;
-  }
   return session;
 }
 

@@ -32,7 +32,7 @@ function renderSummaryHeaderCell(item, ceremony) {
   return escapeHtml(item.summaryName || item.name);
 }
 
-export async function buildSummaryReportHtml(db, ceremonyId) {
+export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
   const ceremony = await ensureCeremonyDates(db, await getCeremony(db, ceremonyId));
   const [items, fellowships, tallies, fellowshipTargets, summaryOverrides] = await Promise.all([
     listCeremonyItems(db, ceremonyId),
@@ -42,7 +42,15 @@ export async function buildSummaryReportHtml(db, ceremonyId) {
     listSummaryTargetOverrides(db, ceremonyId),
   ]);
 
-  const summary = buildSummary({ ceremony, items, fellowships, tallies, fellowshipTargets, summaryOverrides });
+  const summary = buildSummary({
+    ceremony,
+    items,
+    fellowships,
+    tallies,
+    fellowshipTargets,
+    summaryOverrides,
+    today: options.reportDate,
+  });
   const rows = [];
 
   rows.push(`
@@ -144,11 +152,11 @@ export async function buildSummaryReportHtml(db, ceremonyId) {
 </html>`;
 }
 
-export async function generateSummaryPdf(env, ceremonyId) {
+export async function generateSummaryPdf(env, ceremonyId, options = {}) {
   if (!env.BROWSER) {
     throw new Error("BROWSER binding is not configured");
   }
-  const html = await buildSummaryReportHtml(env.DB, ceremonyId);
+  const html = await buildSummaryReportHtml(env.DB, ceremonyId, options);
   const browser = await puppeteer.launch(env.BROWSER);
   try {
     const page = await browser.newPage();

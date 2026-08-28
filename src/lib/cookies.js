@@ -1,5 +1,5 @@
-export const SESSION_COOKIE_NAME = "dailytally_session";
-export const OIDC_COOKIE_NAME = "dailytally_oidc";
+export const SESSION_COOKIE_NAME = "dailytally2_session";
+export const OIDC_COOKIE_NAME = "dailytally2_oidc";
 export const SESSION_TTL_SECONDS = 8 * 60 * 60;
 
 export function parseCookies(request) {
