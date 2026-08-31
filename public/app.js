@@ -502,6 +502,12 @@ async function switchCeremony(ceremonyId) {
       fellowshipTargets: [],
       summaryOverrides: [],
     };
+    if (result.payload.ceremony) {
+      const index = state.ceremonies.findIndex((ceremony) => ceremony.id === ceremonyId);
+      if (index >= 0) {
+        state.ceremonies[index] = { ...state.ceremonies[index], ...result.payload.ceremony };
+      }
+    }
   }
 }
 

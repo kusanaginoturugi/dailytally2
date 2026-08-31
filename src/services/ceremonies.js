@@ -49,6 +49,19 @@ export async function getCeremony(db, ceremonyId) {
   return row ? rowToCeremony(row) : null;
 }
 
+async function getPreviousCeremony(db, ceremony) {
+  const row = await db
+    .prepare(
+      `SELECT * FROM ceremonies
+       WHERE sort_order < ? OR (sort_order = ? AND id < ?)
+       ORDER BY sort_order DESC, id DESC
+       LIMIT 1`,
+    )
+    .bind(ceremony.sortOrder, ceremony.sortOrder, ceremony.id)
+    .first();
+  return row ? rowToCeremony(row) : null;
+}
+
 export async function listCeremonyItems(db, ceremonyId) {
   const { results } = await db
     .prepare("SELECT * FROM tally_items WHERE ceremony_id = ? ORDER BY sort_order ASC, id ASC")
@@ -142,9 +155,19 @@ export async function ensureCeremonyDates(db, ceremony) {
     }
   }
 
+  // 得道者数は、前の護摩供が終わった翌日から数え始める。
+  if (!isValidISODate(next.seekersStartAt)) {
+    const previous = await getPreviousCeremony(db, ceremony);
+    if (previous) {
+      const ensuredPrevious = await ensureCeremonyDates(db, previous);
+      next.seekersStartAt = addDaysISO(ensuredPrevious.endAt, 1);
+    }
+  }
+
   if (
     next.beginAt !== ceremony.beginAt ||
     next.endAt !== ceremony.endAt ||
+    next.seekersStartAt !== ceremony.seekersStartAt ||
     next.datePresetKey !== ceremony.datePresetKey
   ) {
     await updateCeremonyDates(db, ceremony.id, {

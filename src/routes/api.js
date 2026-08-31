@@ -114,9 +114,14 @@ async function handleActiveCeremony(request, env) {
     return notFound();
   }
   await setActiveCeremonyId(env.DB, ceremonyId);
-  await ensureCeremonyDates(env.DB, ceremony);
+  const ensuredCeremony = await ensureCeremonyDates(env.DB, ceremony);
   const data = await readCeremonyData(env, ceremonyId);
-  return jsonResponse({ ok: true, activeCeremonyId: ceremonyId, activeCeremonyData: data });
+  return jsonResponse({
+    ok: true,
+    activeCeremonyId: ceremonyId,
+    activeCeremonyData: data,
+    ceremony: ensuredCeremony,
+  });
 }
 
 async function handleCeremonySettings(request, env) {
