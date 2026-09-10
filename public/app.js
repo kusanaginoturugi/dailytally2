@@ -151,6 +151,16 @@ function getCeremonyName() {
   return `第${ceremony.nextNumber}回${ceremony.name}`;
 }
 
+function formatTodayForFileName() {
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const [, month, day] = today.split("-").map(Number);
+  return `${month}.${day}`;
+}
+
+function getSummaryPdfFileName() {
+  return `${formatTodayForFileName()}【${getCeremonyName()}】集計表.pdf`;
+}
+
 function fellowshipNames() {
   return state.fellowships.map((f) => f.name);
 }
@@ -1025,7 +1035,7 @@ async function saveSummaryPdf(button) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${getCeremonyName()}_集計表.pdf`;
+    link.download = getSummaryPdfFileName();
     document.body.appendChild(link);
     link.click();
     link.remove();

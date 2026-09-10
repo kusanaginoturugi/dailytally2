@@ -43,6 +43,19 @@ import { runManualReport } from "../services/report-sender.js";
 import { syncFellowships } from "../services/master-sync.js";
 import { todayISO } from "../lib/dates.js";
 
+function formatDownloadDate(isoDate) {
+  const [, month, day] = isoDate.split("-").map(Number);
+  return `${month}.${day}`;
+}
+
+function summaryPdfFileName(ceremony) {
+  return `${formatDownloadDate(todayISO())}【第${ceremony.nextNumber}回${ceremony.name}】集計表.pdf`;
+}
+
+function contentDispositionForPdf(filename) {
+  return `inline; filename="summary.pdf"; filename*=UTF-8''${encodeURIComponent(filename)}`;
+}
+
 async function readBootstrap(env) {
   const [fellowships, ceremonies, itemsByCeremony] = await Promise.all([
     listFellowships(env.DB),
@@ -245,11 +258,13 @@ async function handleReportPdf(request, env) {
     ceremonyId = await getActiveCeremonyId(env.DB);
   }
   if (!ceremonyId) return badRequest("ceremonyId required");
+  const ceremony = await getCeremony(env.DB, ceremonyId);
+  if (!ceremony) return notFound();
   const pdf = await generateSummaryPdf(env, ceremonyId);
   return new Response(pdf, {
     headers: {
       "content-type": "application/pdf",
-      "content-disposition": 'inline; filename="dailytally-report.pdf"',
+      "content-disposition": contentDispositionForPdf(summaryPdfFileName(ceremony)),
     },
   });
 }
