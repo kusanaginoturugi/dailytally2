@@ -347,7 +347,8 @@ async function handleSyncMasters(request, env) {
     const result = await syncFellowships(env);
     return jsonResponse({ ok: true, ...result });
   } catch (error) {
-    return jsonResponse({ ok: false, error: error?.message || String(error) }, { status: 502 });
+    console.error("master sync failed:", error);
+    return jsonResponse({ ok: false, error: "Master sync failed" }, { status: 502 });
   }
 }
 
