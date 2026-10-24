@@ -102,18 +102,8 @@ function summarizeTendoPage(html, url, status) {
   return `status=${status}, url=${url}, title=${title}, names=${names || "(none)"}, actions=${actions || "(none)"}, iframe=${iframe}`;
 }
 
-function getTextSnippet(html) {
-  return String(html || "")
-    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 180);
-}
-
 function summarizeSubmitResult(html, url, status) {
-  return `${summarizeTendoPage(html, url, status)}, text=${getTextSnippet(html) || "(none)"}`;
+  return summarizeTendoPage(html, url, status);
 }
 
 function hasTendoSubmitSuccess(html) {

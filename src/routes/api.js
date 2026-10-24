@@ -333,7 +333,7 @@ export async function handleApi(request, env) {
 
     return notFound();
   } catch (error) {
-    if (error instanceof RangeError) return jsonResponse({ error: error.message }, { status: 413 });
+    if (error instanceof RangeError) return jsonResponse({ error: "Request body is too large" }, { status: 413 });
     if (error instanceof SyntaxError) return badRequest("Invalid JSON body");
     throw error;
   }
