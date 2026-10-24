@@ -9,13 +9,14 @@ import { runScheduledReport } from "./services/report-sender.js";
 
 export default {
   async fetch(request, env) {
+    if (!isOidcConfigured(env)) {
+      return new Response("Authentication is not configured", { status: 503 });
+    }
     let url = new URL(request.url);
 
-    if (isOidcConfigured(env)) {
-      if (url.pathname === "/auth/login") return handleAuthLogin(request, env);
-      if (url.pathname === "/auth/callback") return handleAuthCallback(request, env);
-      if (url.pathname === "/auth/logout") return handleAuthLogout();
-    }
+    if (url.pathname === "/auth/login") return handleAuthLogin(request, env);
+    if (url.pathname === "/auth/callback") return handleAuthCallback(request, env);
+    if (url.pathname === "/auth/logout") return handleAuthLogout();
 
     const auth = await authenticateRequest(request, env);
     if (auth.response) return auth.response;

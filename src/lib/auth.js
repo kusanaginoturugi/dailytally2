@@ -178,6 +178,9 @@ export async function refreshSessionUser(request, env) {
 
 function requestWithUserHeaders(request, user) {
   const headers = new Headers(request.headers);
+  for (const name of ["x-authentik-groups", "x-authentik-email", "x-authentik-username", "x-authentik-name", "cf-access-authenticated-user-email"]) {
+    headers.delete(name);
+  }
   const encode = (value) => encodeURIComponent(String(value || ""));
   headers.set("x-dailytally-login-id", encode(user.loginId));
   headers.set("x-dailytally-fellowship", encode(user.fellowship));

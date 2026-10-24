@@ -4,7 +4,7 @@
 
 - ランタイム: Cloudflare Workers + D1 + Browser Rendering
 - ストレージ: D1 を正規化テーブルで使用 (`fellowships`, `ceremonies`, `tally_items`, `tallies`, `fellowship_targets`, `summary_target_overrides`, `report_settings`, `report_history`, `app_settings`)
-- 認証: authentik OIDC または SSO ヘッダ (`x-dailytally-*` / `x-authentik-*`)
+- 認証: authentik OIDC。必須設定が欠けている場合は HTTP 503
 - フロント: 素の JS / HTML / CSS (旧版を新 API に合わせて書き直し)
 
 ## ディレクトリ

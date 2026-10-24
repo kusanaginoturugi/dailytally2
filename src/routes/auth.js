@@ -36,7 +36,8 @@ export async function handleAuthLogin(request, env) {
   const state = randomToken();
   const verifier = randomToken();
   const challenge = await sha256Base64Url(verifier);
-  const rd = url.searchParams.get("rd") || "/";
+  const requestedPath = url.searchParams.get("rd") || "/";
+  const rd = requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\") ? requestedPath : "/";
   const oidcCookie = await createSignedCookieValue(env.SESSION_SECRET, {
     state,
     verifier,
@@ -57,14 +58,18 @@ export async function handleAuthLogin(request, env) {
 }
 
 async function fetchOidcUserClaims(config, tokenSet) {
-  let claims = tokenSet.id_token ? decodeJwtPayload(tokenSet.id_token) || {} : {};
-  if (config.userinfo_endpoint && tokenSet.access_token) {
-    const response = await fetch(config.userinfo_endpoint, {
-      headers: { authorization: `Bearer ${tokenSet.access_token}` },
-    });
-    if (response.ok) {
-      claims = { ...claims, ...(await response.json()) };
-    }
+  if (!config.userinfo_endpoint || !tokenSet.access_token) {
+    throw new Error("OIDC userinfo is unavailable");
+  }
+  const response = await fetch(config.userinfo_endpoint, {
+    headers: { authorization: `Bearer ${tokenSet.access_token}` },
+  });
+  if (!response.ok) {
+    throw new Error(`OIDC userinfo returned ${response.status}`);
+  }
+  const claims = await response.json();
+  if (!claims.sub || (tokenSet.id_token && decodeJwtPayload(tokenSet.id_token).sub !== claims.sub)) {
+    throw new Error("OIDC subject mismatch");
   }
   return claims;
 }

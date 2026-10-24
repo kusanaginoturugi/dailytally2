@@ -1099,7 +1099,13 @@ function renderSummaryPage() {
       unit.textContent = item.unit;
       td.appendChild(unit);
     } else {
-      td.innerHTML = `<span class="summary-value">${value || ""}</span><span class="summary-unit">${item.unit}</span>`;
+      const valueEl = document.createElement("span");
+      valueEl.className = "summary-value";
+      valueEl.textContent = value || "";
+      const unitEl = document.createElement("span");
+      unitEl.className = "summary-unit";
+      unitEl.textContent = item.unit;
+      td.append(valueEl, unitEl);
     }
     targetRow.appendChild(td);
   }
@@ -1115,7 +1121,13 @@ function renderSummaryPage() {
     for (const item of items) {
       const td = document.createElement("td");
       const value = totals?.[item.id] || "";
-      td.innerHTML = `<span class="summary-value">${value}</span><span class="summary-unit">${item.unit}</span>`;
+      const valueEl = document.createElement("span");
+      valueEl.className = "summary-value";
+      valueEl.textContent = value;
+      const unitEl = document.createElement("span");
+      unitEl.className = "summary-unit";
+      unitEl.textContent = item.unit;
+      td.append(valueEl, unitEl);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -1130,7 +1142,13 @@ function renderSummaryPage() {
   for (const item of items) {
     const td = document.createElement("td");
     const value = final?.[item.id] || "";
-    td.innerHTML = `<span class="summary-value">${value}</span><span class="summary-unit">${item.unit}</span>`;
+    const valueEl = document.createElement("span");
+    valueEl.className = "summary-value";
+    valueEl.textContent = value;
+    const unitEl = document.createElement("span");
+    unitEl.className = "summary-unit";
+    unitEl.textContent = item.unit;
+    td.append(valueEl, unitEl);
     totalRow.appendChild(td);
   }
 

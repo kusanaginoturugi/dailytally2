@@ -20,6 +20,14 @@ const TENDO_REPORT_FORM_URLS = [
   "https://tendo.net/advanced/app/doumu",
 ];
 
+function safeTendoUrl(value, base) {
+  const url = new URL(value, base);
+  if (url.protocol !== "https:" || (url.hostname !== "tendo.net" && !url.hostname.endsWith(".tendo.net"))) {
+    throw new Error("Unexpected tendo.net URL");
+  }
+  return url.toString();
+}
+
 async function fetchWithCookies(url, cookie, options = {}) {
   let currentUrl = url;
   let currentCookie = cookie;
@@ -32,7 +40,7 @@ async function fetchWithCookies(url, cookie, options = {}) {
   for (let i = 0; i < 5 && response.status >= 300 && response.status < 400; i += 1) {
     const location = response.headers.get("location");
     if (!location) break;
-    currentUrl = new URL(location, currentUrl).toString();
+    currentUrl = safeTendoUrl(location, currentUrl);
     response = await fetch(currentUrl, {
       headers: { cookie: currentCookie },
       redirect: "manual",
@@ -49,7 +57,7 @@ async function followResponseRedirects(url, response, cookie) {
   for (let i = 0; i < 5 && currentResponse.status >= 300 && currentResponse.status < 400; i += 1) {
     const location = currentResponse.headers.get("location");
     if (!location) break;
-    currentUrl = new URL(location, currentUrl).toString();
+    currentUrl = safeTendoUrl(location, currentUrl);
     currentResponse = await fetch(currentUrl, {
       headers: { cookie: currentCookie },
       redirect: "manual",
@@ -160,7 +168,7 @@ async function findReportFormPage(env, cookie) {
   let currentCookie = cookie;
 
   for (const candidate of candidates) {
-    const page = await fetchWithCookies(new URL(candidate, TENDO_ONLINE_URL).toString(), currentCookie);
+    const page = await fetchWithCookies(safeTendoUrl(candidate, TENDO_ONLINE_URL), currentCookie);
     currentCookie = page.cookie;
     const html = await page.response.text();
     if (html.includes("申請者登録フォーム")) {
@@ -171,7 +179,7 @@ async function findReportFormPage(env, cookie) {
     }
     const iframeUrl = extractReportIframeUrl(html);
     if (iframeUrl) {
-      const iframePage = await fetchWithCookies(new URL(iframeUrl, page.url).toString(), currentCookie);
+      const iframePage = await fetchWithCookies(safeTendoUrl(iframeUrl, page.url), currentCookie);
       currentCookie = iframePage.cookie;
       const iframeHtml = await iframePage.response.text();
       if (extractReportFormAction(iframeHtml) || hasReportFormFields(iframeHtml)) {
@@ -202,20 +210,25 @@ async function submitOnlineReport(env, ceremony, settings, cookie, pdfBuffer) {
   formData.set(fileField, new File([pdfBuffer], "dailytally-report.pdf", { type: "application/pdf" }));
   formData.set("mirokuji", "弥勒寺へ送信");
 
-  const resolvedPostUrl = new URL(postUrl, onlinePage.url).toString();
+  const resolvedPostUrl = safeTendoUrl(postUrl, onlinePage.url);
   const response = await fetch(resolvedPostUrl, {
     method: "POST",
     headers: { cookie: onlinePage.cookie, referer: onlinePage.url },
     body: formData,
-    redirect: "follow",
+    redirect: "manual",
   });
-  const text = await response.text();
-  if (!response.ok || /エラー|失敗|ログイン/.test(text)) {
-    throw new Error(`tendo.net report submit returned ${response.status}: url=${resolvedPostUrl}, formAction=${formAction || "(none)"}`);
+  const followed = await followResponseRedirects(
+    resolvedPostUrl,
+    response,
+    mergeCookies(onlinePage.cookie, parseCookieHeaders(response.headers)),
+  );
+  const text = await followed.response.text();
+  if (!followed.response.ok || /エラー|失敗|ログイン/.test(text)) {
+    throw new Error(`tendo.net report submit returned ${followed.response.status}: url=${resolvedPostUrl}, formAction=${formAction || "(none)"}`);
   }
   return {
     confirmed: hasTendoSubmitSuccess(text),
-    summary: summarizeSubmitResult(text, response.url || resolvedPostUrl, response.status),
+    summary: summarizeSubmitResult(text, followed.url, followed.response.status),
   };
 }
 

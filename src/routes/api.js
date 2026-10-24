@@ -56,6 +56,33 @@ function contentDispositionForPdf(filename) {
   return `inline; filename="summary.pdf"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }
 
+async function readJsonBody(request) {
+  const limit = 16 * 1024;
+  if (Number(request.headers.get("content-length")) > limit) {
+    throw new RangeError("Request body is too large");
+  }
+  const reader = request.body?.getReader();
+  if (!reader) throw new SyntaxError("JSON body required");
+  const decoder = new TextDecoder();
+  let size = 0;
+  let body = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > limit) {
+      await reader.cancel();
+      throw new RangeError("Request body is too large");
+    }
+    body += decoder.decode(value, { stream: true });
+  }
+  const parsed = JSON.parse(body + decoder.decode());
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new SyntaxError("JSON object required");
+  }
+  return parsed;
+}
+
 async function readBootstrap(env) {
   const [fellowships, ceremonies, itemsByCeremony] = await Promise.all([
     listFellowships(env.DB),
@@ -117,7 +144,8 @@ async function handleBootstrap(request, env) {
 }
 
 async function handleActiveCeremony(request, env) {
-  const body = await request.json();
+  if (!canWriteAdmin(request)) return forbidden();
+  const body = await readJsonBody(request);
   const ceremonyId = Number(body.ceremonyId);
   if (!ceremonyId) {
     return badRequest("ceremonyId required");
@@ -139,7 +167,7 @@ async function handleActiveCeremony(request, env) {
 
 async function handleCeremonySettings(request, env) {
   if (!canWriteAdmin(request)) return forbidden();
-  const body = await request.json();
+  const body = await readJsonBody(request);
   const ceremonyId = Number(body.ceremonyId);
   if (!ceremonyId) return badRequest("ceremonyId required");
   const ceremony = await getCeremony(env.DB, ceremonyId);
@@ -157,7 +185,7 @@ async function handleCeremonySettings(request, env) {
 }
 
 async function handleTallies(request, env) {
-  const body = await request.json();
+  const body = await readJsonBody(request);
   const ceremonyId = Number(body.ceremonyId);
   const fellowshipName = String(body.fellowshipName || "");
   const itemId = Number(body.itemId);
@@ -201,7 +229,7 @@ async function handleTallies(request, env) {
 }
 
 async function handleFellowshipTargets(request, env) {
-  const body = await request.json();
+  const body = await readJsonBody(request);
   const ceremonyId = Number(body.ceremonyId);
   const fellowshipName = String(body.fellowshipName || "");
   const itemId = Number(body.itemId);
@@ -225,7 +253,7 @@ async function handleFellowshipTargets(request, env) {
 
 async function handleSummaryTargets(request, env) {
   if (!canWriteAdmin(request)) return forbidden();
-  const body = await request.json();
+  const body = await readJsonBody(request);
   const ceremonyId = Number(body.ceremonyId);
   const itemId = Number(body.itemId);
   const value = Math.max(0, Number(body.value) || 0);
@@ -238,7 +266,7 @@ async function handleSummaryTargets(request, env) {
 
 async function handleReportSettings(request, env) {
   if (!canWriteAdmin(request)) return forbidden();
-  const body = await request.json();
+  const body = await readJsonBody(request);
   await updateReportSettings(env.DB, {
     enabled: Boolean(body.enabled),
     sendTime: REPORT_SEND_TIME,
@@ -283,21 +311,32 @@ export async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  if (path === "/api/me" && request.method === "GET") return handleMe(request, env);
-  if (path === "/api/bootstrap" && request.method === "GET") return handleBootstrap(request, env);
-  if (path === "/api/active-ceremony" && request.method === "POST") return handleActiveCeremony(request, env);
-  if (path === "/api/ceremony-settings" && request.method === "POST") return handleCeremonySettings(request, env);
-  if (path === "/api/tallies" && request.method === "POST") return handleTallies(request, env);
-  if (path === "/api/fellowship-targets" && request.method === "POST") return handleFellowshipTargets(request, env);
-  if (path === "/api/summary-targets" && request.method === "POST") return handleSummaryTargets(request, env);
-  if (path === "/api/report-settings" && request.method === "POST") return handleReportSettings(request, env);
-  if (path === "/api/report-pdf" && request.method === "GET") return handleReportPdf(request, env);
-  if (path === "/api/report-send" && request.method === "POST") return handleReportSend(request, env);
-  if (path === "/api/sync/masters" && request.method === "POST") return handleSyncMasters(request, env);
-  if (path === "/api/fellowships/all" && request.method === "GET") return handleListAllFellowships(request, env);
-  if (path === "/api/fellowships/enabled" && request.method === "POST") return handleFellowshipEnabled(request, env);
+  if (request.method === "POST") {
+    const origin = request.headers.get("origin");
+    if (origin && origin !== url.origin) return forbidden();
+  }
 
-  return notFound();
+  try {
+    if (path === "/api/me" && request.method === "GET") return await handleMe(request, env);
+    if (path === "/api/bootstrap" && request.method === "GET") return await handleBootstrap(request, env);
+    if (path === "/api/active-ceremony" && request.method === "POST") return await handleActiveCeremony(request, env);
+    if (path === "/api/ceremony-settings" && request.method === "POST") return await handleCeremonySettings(request, env);
+    if (path === "/api/tallies" && request.method === "POST") return await handleTallies(request, env);
+    if (path === "/api/fellowship-targets" && request.method === "POST") return await handleFellowshipTargets(request, env);
+    if (path === "/api/summary-targets" && request.method === "POST") return await handleSummaryTargets(request, env);
+    if (path === "/api/report-settings" && request.method === "POST") return await handleReportSettings(request, env);
+    if (path === "/api/report-pdf" && request.method === "GET") return await handleReportPdf(request, env);
+    if (path === "/api/report-send" && request.method === "POST") return await handleReportSend(request, env);
+    if (path === "/api/sync/masters" && request.method === "POST") return await handleSyncMasters(request, env);
+    if (path === "/api/fellowships/all" && request.method === "GET") return await handleListAllFellowships(request, env);
+    if (path === "/api/fellowships/enabled" && request.method === "POST") return await handleFellowshipEnabled(request, env);
+
+    return notFound();
+  } catch (error) {
+    if (error instanceof RangeError) return jsonResponse({ error: error.message }, { status: 413 });
+    if (error instanceof SyntaxError) return badRequest("Invalid JSON body");
+    throw error;
+  }
 }
 
 async function handleSyncMasters(request, env) {
@@ -324,7 +363,7 @@ async function handleFellowshipEnabled(request, env) {
   if (!canWriteAdmin(request)) {
     return forbidden();
   }
-  const payload = await request.json().catch(() => ({}));
+  const payload = await readJsonBody(request);
   const id = Number(payload.id);
   if (!id) {
     return badRequest("id is required");

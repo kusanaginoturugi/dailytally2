@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test",
+    "build": "wrangler deploy --dry-run --outdir .wrangler/build",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --name dailytally2 --compatibility-flags nodejs_compat",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
@@ -13,6 +15,10 @@
   },
   "devDependencies": {
     "@cloudflare/puppeteer": "^1.4.0",
-    "wrangler": "^4.149.0"
+    "wrangler": "^4.152.0"
+  },
+  "overrides": {
+    "ip-address": "10.7.4",
+    "undici": "7.30.1"
   }
 }
