@@ -28,8 +28,8 @@ function getCarriedValue(index, fellowshipId, itemId, weekDates, untilDate) {
   return carried;
 }
 
-export function buildSummary({ ceremony, items, fellowships, tallies, fellowshipTargets, summaryOverrides, today = todayISO() }) {
-  const weekDates = listDatesInRange(ceremony.beginAt, ceremony.endAt);
+export function buildSummary({ ceremony, items, fellowships, tallies, fellowshipTargets, summaryOverrides, tallyDates = [], today = todayISO() }) {
+  const weekDates = tallyDates.length ? tallyDates.map((entry) => entry.date) : listDatesInRange(ceremony.beginAt, ceremony.endAt);
   const dailyDates = ceremony.endAt ? weekDates.filter((date) => date < ceremony.endAt) : weekDates;
   const talliesIndex = buildTalliesIndex(tallies);
   const fellowshipTargetIndex = new Map(

@@ -1,7 +1,7 @@
 import puppeteer from "@cloudflare/puppeteer";
 import { formatShortDate } from "../lib/dates.js";
 import { listFellowships } from "./fellowships.js";
-import { listCeremonyItems, getCeremony, ensureCeremonyDates } from "./ceremonies.js";
+import { listCeremonyItems, listCeremonyTallyDates, getCeremony, ensureCeremonyDates } from "./ceremonies.js";
 import { listTallies } from "./tallies.js";
 import { listFellowshipTargets, listSummaryTargetOverrides } from "./targets.js";
 import { buildSummary } from "./summary.js";
@@ -34,12 +34,13 @@ function renderSummaryHeaderCell(item, ceremony) {
 
 export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
   const ceremony = await ensureCeremonyDates(db, await getCeremony(db, ceremonyId));
-  const [items, fellowships, tallies, fellowshipTargets, summaryOverrides] = await Promise.all([
+  const [items, fellowships, tallies, fellowshipTargets, summaryOverrides, tallyDates] = await Promise.all([
     listCeremonyItems(db, ceremonyId),
     listFellowships(db),
     listTallies(db, ceremonyId),
     listFellowshipTargets(db, ceremonyId),
     listSummaryTargetOverrides(db, ceremonyId),
+    listCeremonyTallyDates(db, ceremonyId),
   ]);
 
   const summary = buildSummary({
@@ -49,6 +50,7 @@ export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
     tallies,
     fellowshipTargets,
     summaryOverrides,
+    tallyDates,
     today: options.reportDate,
   });
   const rows = [];

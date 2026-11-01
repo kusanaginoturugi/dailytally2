@@ -115,7 +115,7 @@ export function buildSendKey(ceremonyId, date, sendTime) {
   return `${ceremonyId}:${date}:${sendTime}`;
 }
 
-export function isReportDue(settings, ceremony, date = new Date()) {
+export function isReportDue(settings, ceremony, date = new Date(), tallyDates = []) {
   if (!settings.enabled || !/^\d{2}:\d{2}$/.test(settings.sendTime || "")) {
     return false;
   }
@@ -129,6 +129,9 @@ export function isReportDue(settings, ceremony, date = new Date()) {
   const targetMinutes = hour * 60 + minute;
 
   if (today < ceremony.beginAt || today > ceremony.endAt) {
+    return false;
+  }
+  if (tallyDates.length && !tallyDates.some((tallyDate) => tallyDate.date === today)) {
     return false;
   }
   if (currentMinutes < targetMinutes) {

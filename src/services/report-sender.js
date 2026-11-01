@@ -1,6 +1,6 @@
 import { formatJSTTimestamp, nowJST } from "../lib/dates.js";
 import { mergeCookies, parseCookieHeaders } from "../lib/cookies.js";
-import { getActiveCeremonyId, getCeremony, ensureCeremonyDates } from "./ceremonies.js";
+import { getActiveCeremonyId, getCeremony, ensureCeremonyDates, listCeremonyTallyDates } from "./ceremonies.js";
 import {
   appendReportHistory,
   buildSendKey,
@@ -303,7 +303,8 @@ export async function runScheduledReport(env) {
   const ceremonyRow = await getCeremony(env.DB, ceremonyId);
   if (!ceremonyRow) return;
   const ceremony = await ensureCeremonyDates(env.DB, ceremonyRow);
-  if (!isReportDue(settings, ceremony, now)) {
+  const tallyDates = await listCeremonyTallyDates(env.DB, ceremonyId);
+  if (!isReportDue(settings, ceremony, now, tallyDates)) {
     return;
   }
   const today = jst.toISOString().slice(0, 10);

@@ -10,6 +10,7 @@ import {
   getActiveCeremonyId,
   getCeremony,
   getCeremonyDatePreset,
+  listCeremonyTallyDates,
   listAllItemsByCeremony,
   listCeremonies,
   setActiveCeremonyId,
@@ -116,14 +117,15 @@ async function readBootstrap(env) {
 
 async function readCeremonyData(env, ceremonyId) {
   if (!ceremonyId) {
-    return { tallies: [], fellowshipTargets: [], summaryOverrides: [] };
+    return { tallies: [], fellowshipTargets: [], summaryOverrides: [], tallyDates: [] };
   }
-  const [tallies, fellowshipTargets, summaryOverrides] = await Promise.all([
+  const [tallies, fellowshipTargets, summaryOverrides, tallyDates] = await Promise.all([
     listTallies(env.DB, ceremonyId),
     listFellowshipTargets(env.DB, ceremonyId),
     listSummaryTargetOverrides(env.DB, ceremonyId),
+    listCeremonyTallyDates(env.DB, ceremonyId),
   ]);
-  return { ceremonyId, tallies, fellowshipTargets, summaryOverrides };
+  return { ceremonyId, tallies, fellowshipTargets, summaryOverrides, tallyDates };
 }
 
 async function handleMe(request, env) {
@@ -196,6 +198,12 @@ async function handleTallies(request, env) {
   }
   if (!canWriteFellowship(request, fellowshipName)) {
     return forbidden();
+  }
+  const ceremony = await getCeremony(env.DB, ceremonyId);
+  if (!ceremony) return notFound();
+  const tallyDates = await listCeremonyTallyDates(env.DB, ceremonyId);
+  if (tallyDates.length && !tallyDates.some((tallyDate) => tallyDate.date === date)) {
+    return badRequest("この護摩供の集計日ではありません");
   }
   const fellowship = await getFellowshipByName(env.DB, fellowshipName);
   if (!fellowship) return badRequest("unknown fellowship");

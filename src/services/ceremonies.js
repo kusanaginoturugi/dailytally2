@@ -78,6 +78,16 @@ export async function listCeremonyItems(db, ceremonyId) {
   }));
 }
 
+export async function listCeremonyTallyDates(db, ceremonyId) {
+  const { results } = await db
+    .prepare(
+      "SELECT tally_date, is_final FROM ceremony_tally_dates WHERE ceremony_id = ? ORDER BY tally_date ASC",
+    )
+    .bind(ceremonyId)
+    .all();
+  return results.map((row) => ({ date: row.tally_date, isFinal: Boolean(row.is_final) }));
+}
+
 export async function listAllItemsByCeremony(db) {
   const { results } = await db
     .prepare("SELECT * FROM tally_items ORDER BY ceremony_id ASC, sort_order ASC, id ASC")

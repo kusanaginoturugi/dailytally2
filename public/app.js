@@ -13,7 +13,7 @@ const state = {
   activeCeremonyId: null,
   fellowships: [],
   ceremonies: [],
-  activeCeremonyData: { ceremonyId: null, tallies: [], fellowshipTargets: [], summaryOverrides: [] },
+  activeCeremonyData: { ceremonyId: null, tallies: [], fellowshipTargets: [], summaryOverrides: [], tallyDates: [] },
   reportSettings: defaultReportSettings(),
   reportHistory: [],
 };
@@ -102,7 +102,12 @@ function normalizeRemoteState(remote) {
     activeCeremonyId: remote.activeCeremonyId || (remote.ceremonies?.[0]?.id ?? null),
     fellowships: remote.fellowships || [],
     ceremonies: remote.ceremonies || [],
-    activeCeremonyData: remote.activeCeremonyData || { tallies: [], fellowshipTargets: [], summaryOverrides: [] },
+    activeCeremonyData: remote.activeCeremonyData || {
+      tallies: [],
+      fellowshipTargets: [],
+      summaryOverrides: [],
+      tallyDates: [],
+    },
     reportSettings: { ...defaultReportSettings(), ...(remote.reportSettings || {}) },
     reportHistory: remote.reportHistory || [],
   };
@@ -242,6 +247,12 @@ function parseAdminDateInput(value) {
 
 function getWeekDates() {
   const ceremony = getActiveCeremony();
+  const scheduledDates = state.activeCeremonyData.tallyDates || [];
+  if (scheduledDates.length) {
+    return scheduledDates
+      .filter((date) => !date.isFinal)
+      .map((date) => ({ id: date.date, label: formatShortDate(date.date) }));
+  }
   if (!ceremony?.beginAt || !ceremony?.endAt) return [];
   const dates = [];
   let current = ceremony.beginAt;
@@ -250,6 +261,11 @@ function getWeekDates() {
     current = addDaysISO(current, 1);
   }
   return dates;
+}
+
+function getFinalDate() {
+  const scheduledFinal = (state.activeCeremonyData.tallyDates || []).find((date) => date.isFinal);
+  return scheduledFinal?.date || getActiveCeremony()?.endAt || "";
 }
 
 function getTallyValue(fellowshipId, itemId, date) {
@@ -339,8 +355,9 @@ function getFinalTotals() {
   const totals = Object.fromEntries(items.map((item) => [item.id, 0]));
   for (const fellowship of state.fellowships) {
     for (const item of items) {
-      const finalValue = getTallyValue(fellowship.id, item.id, ceremony.endAt);
-      const carried = getCarriedValue(fellowship.id, item.id, ceremony.endAt);
+      const finalDate = getFinalDate();
+      const finalValue = getTallyValue(fellowship.id, item.id, finalDate);
+      const carried = getCarriedValue(fellowship.id, item.id, finalDate);
       totals[item.id] += finalValue || carried;
     }
   }
@@ -733,21 +750,21 @@ function renderInputPage(fellowshipName) {
   }
 
   // 最終行
-  const ceremony = getActiveCeremony();
   const totalRow = content.querySelector("#inputWeeklyTotalRow");
   const finalLabel = document.createElement("th");
   finalLabel.textContent = "最終";
   totalRow.appendChild(finalLabel);
   for (const item of items) {
     const td = document.createElement("td");
-    const finalValue = getTallyValue(fellowship.id, item.id, ceremony?.endAt || "");
-    const canEditDate = editable && (ceremony?.endAt || "") >= todayISO();
+    const finalDate = getFinalDate();
+    const finalValue = getTallyValue(fellowship.id, item.id, finalDate);
+    const canEditDate = editable && finalDate >= todayISO();
     if (canEditDate) {
       const input = createNumberInput(finalValue, async (raw) => {
         const value = Math.max(0, Number(raw) || 0);
-        const result = await postTally(fellowshipName, item.id, ceremony.endAt, raw === "" ? "" : value);
+        const result = await postTally(fellowshipName, item.id, finalDate, raw === "" ? "" : value);
         if (result.ok) {
-          setLocalTallyValue(fellowship.id, item.id, ceremony.endAt, value);
+          setLocalTallyValue(fellowship.id, item.id, finalDate, value);
           setInputWarning(section, "");
         } else {
           setInputWarning(section, result.payload?.error || "保存に失敗しました");
@@ -771,6 +788,8 @@ function renderInputPage(fellowshipName) {
 function reportStatusText() {
   const r = state.reportSettings;
   const status = r.enabled ? "有効" : "無効";
+  const scheduledDates = state.activeCeremonyData.tallyDates || [];
+  const scheduleText = scheduledDates.length ? "登録集計日に" : "開始日から最終日まで毎日";
   const scheduledMatch = (r.lastSentKey || "").match(/^\d+:\d{4}-\d{2}-\d{2}:(\d{2}:\d{2})$/);
   const manualThroughMatch = (r.lastSentKey || "").match(/^manual-through:\d+:(\d{4}-\d{2}-\d{2}):/);
   const successNote = manualThroughMatch
@@ -783,7 +802,7 @@ function reportStatusText() {
       ? ` 前回成功: ${r.lastSuccessAt}${successNote}`
       : "";
   const error = r.lastError ? ` 最終エラー: ${r.lastError}` : "";
-  return `状態: ${status} / 現在設定: 開始日から最終日まで毎日 ${r.sendTime} に送信${success}${error}`;
+  return `状態: ${status} / 現在設定: ${scheduleText} ${r.sendTime} に送信${success}${error}`;
 }
 
 function renderReportHistory(listEl) {
