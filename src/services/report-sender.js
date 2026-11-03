@@ -307,15 +307,21 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const failedAt = formatJSTTimestamp();
     await updateReportError(env.DB, message);
     await appendReportHistory(env.DB, {
-      sentAt: formatJSTTimestamp(),
+      sentAt: failedAt,
       sendKey,
       status: "失敗",
       message,
       ceremonyId: ceremony.id,
     });
-    await sendNotification(env, settings, "オンライン報告の送信に失敗しました", message);
+    await sendNotification(
+      env,
+      settings,
+      "【毎日集計】送信失敗",
+      `アドバンスドページへの送信に失敗しました。\n\n護摩供: ${ceremony.name}\n失敗時刻: ${failedAt}\n\nエラー内容:\n${message}\n\n手動送信が必要です。`,
+    );
     throw error;
   }
 }
