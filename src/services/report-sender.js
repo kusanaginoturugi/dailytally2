@@ -222,11 +222,33 @@ async function submitOnlineReport(env, ceremony, settings, cookie, pdfBuffer) {
   };
 }
 
-async function sendNotification(env, settings, subject, body) {
+function formatMailDate(date = new Date()) {
+  const jst = nowJST(date);
+  return `${jst.getUTCMonth() + 1}.${jst.getUTCDate()}`;
+}
+
+function summaryMailSubject(ceremony) {
+  return `【毎日集計】${ceremony.name}`;
+}
+
+function summaryMailFileName(ceremony, date = new Date()) {
+  return `【毎日集計】${ceremony.name}(${formatMailDate(date)}).pdf`;
+}
+
+function toBase64(data) {
+  const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  return btoa(binary);
+}
+
+async function sendNotification(env, settings, subject, body, attachment = null) {
   if (!env.RESEND_API_KEY || !settings.notifyEmail) {
     return;
   }
-  await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       authorization: `Bearer ${env.RESEND_API_KEY}`,
@@ -237,8 +259,12 @@ async function sendNotification(env, settings, subject, body) {
       to: settings.notifyEmail,
       subject,
       text: body,
+      ...(attachment ? { attachments: [attachment] } : {}),
     }),
   });
+  if (!response.ok) {
+    throw new Error(`事務局メールの送信に失敗しました (${response.status}): ${await response.text()}`);
+  }
 }
 
 async function sendReport(env, ceremony, settings, sendKey, startMessage, options = {}) {
@@ -268,8 +294,12 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
     await sendNotification(
       env,
       settings,
-      result.confirmed ? "オンライン報告を送信しました" : "オンライン報告の送信結果を確認できません",
+      summaryMailSubject(ceremony),
       `${result.confirmed ? "送信完了" : "送信結果未確認"}: ${successAt}\n${result.summary}`,
+      {
+        filename: summaryMailFileName(ceremony),
+        content: toBase64(pdfBuffer),
+      },
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
