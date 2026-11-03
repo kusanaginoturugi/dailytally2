@@ -19,10 +19,14 @@ const TENDO_REPORT_FORM_URLS = [
   "https://tendo.net/advanced/app/activity",
   "https://tendo.net/advanced/app/doumu",
 ];
+const TRUSTED_TENDO_HOSTS = new Set(["tendo.net", "tendo.aa0.netvolante.jp"]);
 
 function safeTendoUrl(value, base) {
   const url = new URL(value, base);
-  if (url.protocol !== "https:" || (url.hostname !== "tendo.net" && !url.hostname.endsWith(".tendo.net"))) {
+  if (
+    url.protocol !== "https:" ||
+    (!TRUSTED_TENDO_HOSTS.has(url.hostname) && !url.hostname.endsWith(".tendo.net"))
+  ) {
     throw new Error("Unexpected tendo.net URL");
   }
   return url.toString();
