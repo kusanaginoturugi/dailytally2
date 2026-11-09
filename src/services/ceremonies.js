@@ -33,8 +33,13 @@ function rowToCeremony(row) {
     endAt: row.end_at || "",
     seekersStartAt: row.seekers_start_at || "",
     datePresetKey: row.date_preset_key || "",
+    targetsLockedAt: row.targets_locked_at || "",
     sortOrder: row.sort_order,
   };
+}
+
+export function areFellowshipTargetsLocked(ceremony, today = todayISO()) {
+  return Boolean(ceremony.targetsLockedAt) || Boolean(ceremony.beginAt && today > ceremony.beginAt);
 }
 
 export async function listCeremonies(db) {

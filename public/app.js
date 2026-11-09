@@ -193,7 +193,7 @@ function canEditFellowshipTarget(name) {
   if (!canEditFellowship(name)) return false;
   if (canEditAdmin()) return true;
   const ceremony = getActiveCeremony();
-  return !ceremony?.beginAt || todayISO() <= ceremony.beginAt;
+  return !ceremony?.targetsLockedAt && (!ceremony?.beginAt || todayISO() <= ceremony.beginAt);
 }
 
 function todayISO() {

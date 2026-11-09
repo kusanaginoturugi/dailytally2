@@ -13,6 +13,7 @@ import {
   listCeremonyTallyDates,
   listAllItemsByCeremony,
   listCeremonies,
+  areFellowshipTargetsLocked,
   setActiveCeremonyId,
   updateCeremonyDates,
 } from "../services/ceremonies.js";
@@ -250,7 +251,7 @@ async function handleFellowshipTargets(request, env) {
   }
   const ceremony = await getCeremony(env.DB, ceremonyId);
   if (!ceremony) return notFound();
-  if (!canWriteAdmin(request) && ceremony.beginAt && todayISO() > ceremony.beginAt) {
+  if (!canWriteAdmin(request) && areFellowshipTargetsLocked(ceremony)) {
     return forbidden();
   }
   const fellowship = await getFellowshipByName(env.DB, fellowshipName);

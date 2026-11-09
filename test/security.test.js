@@ -4,6 +4,21 @@ import worker from "../src/worker.js";
 import { canWriteAdmin, canWriteFellowship } from "../src/lib/auth.js";
 import { SESSION_COOKIE_NAME, createSignedCookieValue } from "../src/lib/cookies.js";
 import { handleApi } from "../src/routes/api.js";
+import { areFellowshipTargetsLocked } from "../src/services/ceremonies.js";
+
+test("fellowship targets can be locked before a ceremony begins", () => {
+  assert.equal(
+    areFellowshipTargetsLocked({ beginAt: "2026-11-15", targetsLockedAt: "2026-11-09 12:00:00" }, "2026-11-09"),
+    true,
+  );
+});
+
+test("fellowship targets stay editable through the first day unless locked", () => {
+  assert.equal(
+    areFellowshipTargetsLocked({ beginAt: "2026-11-15", targetsLockedAt: "" }, "2026-11-15"),
+    false,
+  );
+});
 
 test("missing OIDC configuration fails closed", async () => {
   const response = await worker.fetch(new Request("https://example.com/api/bootstrap"), {});
