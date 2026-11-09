@@ -13,6 +13,13 @@ test("fellowship targets can be locked before a ceremony begins", () => {
   );
 });
 
+test("manual target lock applies independently of the ceremony start date", () => {
+  assert.equal(
+    areFellowshipTargetsLocked({ beginAt: "2026-11-15", targetsLockedAt: "2026-11-09 12:00:00" }, "2026-11-01"),
+    true,
+  );
+});
+
 test("fellowship targets stay editable through the first day unless locked", () => {
   assert.equal(
     areFellowshipTargetsLocked({ beginAt: "2026-11-15", targetsLockedAt: "" }, "2026-11-15"),

@@ -251,6 +251,9 @@ async function handleFellowshipTargets(request, env) {
   }
   const ceremony = await getCeremony(env.DB, ceremonyId);
   if (!ceremony) return notFound();
+  if (ceremony.targetsLockedAt) {
+    return forbidden();
+  }
   if (!canWriteAdmin(request) && areFellowshipTargetsLocked(ceremony)) {
     return forbidden();
   }
