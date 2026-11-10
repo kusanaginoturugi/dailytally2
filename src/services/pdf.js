@@ -108,6 +108,10 @@ export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
     </tr>
   `);
 
+  const waterNote = ceremony.id === 10
+    ? ""
+    : '<p class="note">※水は種類を問わず、箱数で記入(1箱20リットルとして計算願います)</p>';
+
   return `<!doctype html>
 <html lang="ja">
 <head>
@@ -148,7 +152,7 @@ export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
 <body>
   <div class="pdf-page">
     <table>${rows.join("")}</table>
-    <p class="note">※水は種類を問わず、箱数で記入(1箱20リットルとして計算願います)</p>
+    ${waterNote}
   </div>
 </body>
 </html>`;

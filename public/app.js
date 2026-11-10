@@ -1094,6 +1094,9 @@ function renderSummaryPage() {
   });
   content.querySelector("[data-phone-colspan]").colSpan = Math.max(1, items.length - 5);
   fillSummaryHeader(content.querySelector("#summaryHeaderRow"));
+  if (getActiveCeremony()?.id === 10) {
+    content.querySelector(".summary-note")?.remove();
+  }
 
   const tbody = content.querySelector("tbody");
   const targetTotals = getTargetTotals();
