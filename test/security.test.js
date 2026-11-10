@@ -5,6 +5,7 @@ import { canWriteAdmin, canWriteFellowship } from "../src/lib/auth.js";
 import { SESSION_COOKIE_NAME, createSignedCookieValue } from "../src/lib/cookies.js";
 import { handleApi } from "../src/routes/api.js";
 import { areFellowshipTargetsLocked } from "../src/services/ceremonies.js";
+import { isReportDue } from "../src/services/reports.js";
 
 test("fellowship targets can be locked before a ceremony begins", () => {
   assert.equal(
@@ -25,6 +26,15 @@ test("fellowship targets stay editable through the first day unless locked", () 
     areFellowshipTargetsLocked({ beginAt: "2026-11-15", targetsLockedAt: "" }, "2026-11-15"),
     false,
   );
+});
+
+test("Senshu Shuten reports are due only on scheduled tally dates at 23:55", () => {
+  const settings = { enabled: true, sendTime: "23:55", lastSentKey: "", lastAttemptKey: "" };
+  const ceremony = { id: 10, beginAt: "2026-11-15", endAt: "2027-03-21" };
+  const tallyDates = [{ date: "2026-11-15" }, { date: "2026-12-15" }, { date: "2027-03-21", isFinal: true }];
+
+  assert.equal(isReportDue(settings, ceremony, new Date("2026-12-15T14:55:00Z"), tallyDates), true);
+  assert.equal(isReportDue(settings, ceremony, new Date("2026-12-16T14:55:00Z"), tallyDates), false);
 });
 
 test("missing OIDC configuration fails closed", async () => {
