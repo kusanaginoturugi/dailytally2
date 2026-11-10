@@ -32,6 +32,13 @@ function renderSummaryHeaderCell(item, ceremony) {
   return escapeHtml(item.summaryName || item.name);
 }
 
+function summaryTitle(ceremony) {
+  if (ceremony.id === 10) {
+    return "幸福（しあわせ）まつりー第15回泉珠収天護摩供ー（R8.9.25〜R9.3.21）";
+  }
+  return `～第${ceremony.nextNumber}回${ceremony.name}　集計表～　報告数は累計数です`;
+}
+
 export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
   const ceremony = await ensureCeremonyDates(db, await getCeremony(db, ceremonyId));
   const [items, fellowships, tallies, fellowshipTargets, summaryOverrides, tallyDates] = await Promise.all([
@@ -57,7 +64,7 @@ export async function buildSummaryReportHtml(db, ceremonyId, options = {}) {
 
   rows.push(`
     <tr class="title-row">
-      <th colspan="${items.length + 1}">～第${ceremony.nextNumber}回${escapeHtml(ceremony.name)}　集計表～　報告数は累計数です</th>
+      <th colspan="${items.length + 1}">${escapeHtml(summaryTitle(ceremony))}</th>
     </tr>
     <tr class="meta-row">
       <th colspan="3"><span class="meta-label">聖院名:</span><span class="meta-value">聖明王院</span></th>

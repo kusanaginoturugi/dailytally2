@@ -156,6 +156,14 @@ function getCeremonyName() {
   return `第${ceremony.nextNumber}回${ceremony.name}`;
 }
 
+function getSummaryTitle() {
+  const ceremony = getActiveCeremony();
+  if (ceremony?.id === 10) {
+    return "幸福（しあわせ）まつりー第15回泉珠収天護摩供ー（R8.9.25〜R9.3.21）";
+  }
+  return `～${getCeremonyName()}　集計表～　報告数は累計数です`;
+}
+
 function formatTodayForFileName() {
   const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const [, month, day] = today.split("-").map(Number);
@@ -1087,8 +1095,7 @@ function renderSummaryPage() {
     pdfButton.insertAdjacentElement("afterend", note);
   }
   const items = getActiveItems();
-  content.querySelector("[data-summary-title]").textContent =
-    `～${getCeremonyName()}　集計表～　報告数は累計数です`;
+  content.querySelector("[data-summary-title]").textContent = getSummaryTitle();
   content.querySelectorAll("[data-summary-colspan]").forEach((cell) => {
     cell.colSpan = items.length + 1;
   });
