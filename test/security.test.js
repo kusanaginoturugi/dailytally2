@@ -5,7 +5,7 @@ import { canWriteAdmin, canWriteFellowship } from "../src/lib/auth.js";
 import { SESSION_COOKIE_NAME, createSignedCookieValue } from "../src/lib/cookies.js";
 import { handleApi } from "../src/routes/api.js";
 import { areFellowshipTargetsLocked } from "../src/services/ceremonies.js";
-import { isReportDue } from "../src/services/reports.js";
+import { isReportDue, scheduledReportDate } from "../src/services/reports.js";
 
 test("fellowship targets can be locked before a ceremony begins", () => {
   assert.equal(
@@ -35,6 +35,16 @@ test("Senshu Shuten reports are due only on scheduled tally dates at 23:55", () 
 
   assert.equal(isReportDue(settings, ceremony, new Date("2026-12-15T14:55:00Z"), tallyDates), true);
   assert.equal(isReportDue(settings, ceremony, new Date("2026-12-16T14:55:00Z"), tallyDates), false);
+});
+
+test("Senshu Shuten final report is sent the following day", () => {
+  const settings = { enabled: true, sendTime: "23:55", lastSentKey: "", lastAttemptKey: "" };
+  const ceremony = { id: 10, beginAt: "2026-11-15", endAt: "2027-03-21" };
+  const tallyDates = [{ date: "2027-03-21", isFinal: true }];
+
+  assert.equal(isReportDue(settings, ceremony, new Date("2027-03-21T14:55:00Z"), tallyDates), false);
+  assert.equal(isReportDue(settings, ceremony, new Date("2027-03-22T14:55:00Z"), tallyDates), true);
+  assert.equal(scheduledReportDate(ceremony, "2027-03-22", tallyDates), "2027-03-21");
 });
 
 test("missing OIDC configuration fails closed", async () => {

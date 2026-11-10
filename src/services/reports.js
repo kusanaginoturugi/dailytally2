@@ -1,4 +1,4 @@
-import { formatJSTTimestamp, nowJST } from "../lib/dates.js";
+import { addDaysISO, formatJSTTimestamp, nowJST } from "../lib/dates.js";
 
 export const REPORT_SEND_TIME = "23:55";
 
@@ -115,6 +115,16 @@ export function buildSendKey(ceremonyId, date, sendTime) {
   return `${ceremonyId}:${date}:${sendTime}`;
 }
 
+// 泉珠収天護摩供の最終集計は、最終日の翌日に送信する。
+export function scheduledReportDate(ceremony, sendDate, tallyDates = []) {
+  const finalDate = tallyDates.find((tallyDate) => tallyDate.isFinal)?.date;
+  if (ceremony?.id === 10 && finalDate) {
+    if (sendDate === finalDate) return null;
+    if (sendDate === addDaysISO(finalDate, 1)) return finalDate;
+  }
+  return sendDate;
+}
+
 export function isReportDue(settings, ceremony, date = new Date(), tallyDates = []) {
   if (!settings.enabled || !/^\d{2}:\d{2}$/.test(settings.sendTime || "")) {
     return false;
@@ -125,13 +135,14 @@ export function isReportDue(settings, ceremony, date = new Date(), tallyDates = 
   const [hour, minute] = settings.sendTime.split(":").map(Number);
   const jst = nowJST(date);
   const today = jst.toISOString().slice(0, 10);
+  const reportDate = scheduledReportDate(ceremony, today, tallyDates);
   const currentMinutes = jst.getUTCHours() * 60 + jst.getUTCMinutes();
   const targetMinutes = hour * 60 + minute;
 
-  if (today < ceremony.beginAt || today > ceremony.endAt) {
+  if (!reportDate || reportDate < ceremony.beginAt || reportDate > ceremony.endAt) {
     return false;
   }
-  if (tallyDates.length && !tallyDates.some((tallyDate) => tallyDate.date === today)) {
+  if (tallyDates.length && !tallyDates.some((tallyDate) => tallyDate.date === reportDate)) {
     return false;
   }
   if (currentMinutes < targetMinutes) {

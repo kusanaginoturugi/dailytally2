@@ -6,6 +6,7 @@ import {
   buildSendKey,
   getReportSettings,
   isReportDue,
+  scheduledReportDate,
   updateReportAttempt,
   updateReportError,
   updateReportSuccess,
@@ -348,8 +349,16 @@ export async function runScheduledReport(env) {
     return;
   }
   const today = jst.toISOString().slice(0, 10);
+  const reportDate = scheduledReportDate(ceremony, today, tallyDates);
   const sendKey = buildSendKey(ceremony.id, today, settings.sendTime);
-  await sendReport(env, ceremony, settings, sendKey, `${settings.sendTime} の自動送信を開始`);
+  await sendReport(
+    env,
+    ceremony,
+    settings,
+    sendKey,
+    `${settings.sendTime} の自動送信を開始`,
+    { reportDate },
+  );
 }
 
 export async function runManualReport(env) {
