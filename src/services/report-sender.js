@@ -236,8 +236,11 @@ function summaryMailSubject(ceremony) {
   return `【毎日集計】${ceremony.name}`;
 }
 
-function summaryMailFileName(ceremony, date = new Date()) {
-  return `【毎日集計】${ceremony.name}(${formatMailDate(date)}).pdf`;
+function summaryMailFileName(ceremony, reportDate = "", date = new Date()) {
+  const dateLabel = /^\d{4}-\d{2}-\d{2}$/.test(reportDate)
+    ? reportDate.slice(5).split("-").map(Number).join(".")
+    : formatMailDate(date);
+  return `【第${ceremony.nextNumber}回${ceremony.name}】集計表(${dateLabel}付).pdf`;
 }
 
 function toBase64(data) {
@@ -283,9 +286,17 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
     ceremonyId: ceremony.id,
   });
 
+  let pdfBuffer = null;
+  const attachment = () => pdfBuffer
+    ? {
+        filename: summaryMailFileName(ceremony, options.reportDate),
+        content: toBase64(pdfBuffer),
+      }
+    : null;
+
   try {
+    pdfBuffer = await generateSummaryPdf(env, ceremony.id, { reportDate: options.reportDate });
     const cookie = await tendoLogin(env);
-    const pdfBuffer = await generateSummaryPdf(env, ceremony.id, { reportDate: options.reportDate });
     const result = await submitOnlineReport(env, ceremony, settings, cookie, pdfBuffer);
     const successAt = formatJSTTimestamp();
     await updateReportSuccess(env.DB, { lastSuccessAt: successAt, lastSentKey: sendKey });
@@ -301,10 +312,7 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
       settings,
       summaryMailSubject(ceremony),
       `${result.confirmed ? "送信完了" : "送信結果未確認"}: ${successAt}\n${result.summary}`,
-      {
-        filename: summaryMailFileName(ceremony),
-        content: toBase64(pdfBuffer),
-      },
+      attachment(),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -322,6 +330,7 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
       settings,
       "【毎日集計】送信失敗",
       `アドバンスドページへの送信に失敗しました。\n\n護摩供: ${ceremony.name}\n失敗時刻: ${failedAt}\n\nエラー内容:\n${message}\n\n手動送信が必要です。`,
+      attachment(),
     );
     throw error;
   }
