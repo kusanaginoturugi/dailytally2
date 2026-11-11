@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@cloudflare/puppeteer": "^1.4.0",
-    "wrangler": "^4.152.0"
+    "wrangler": "^4.158.0"
   },
   "overrides": {
     "ip-address": "10.7.4",
