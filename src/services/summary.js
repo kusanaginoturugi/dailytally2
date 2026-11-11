@@ -38,7 +38,8 @@ export function buildSummary({ ceremony, items, fellowships, tallies, fellowship
   const overrideIndex = new Map(summaryOverrides.map((o) => [o.itemId, o.value]));
 
   const dailyTotals = dailyDates.map((date) => {
-    if (date > today) {
+    // 泉珠収天護摩供は、集計日前に入力された数値も事前確認できるようにする。
+    if (date > today && ceremony.id !== 10) {
       return { date, totals: null };
     }
     const totals = Object.fromEntries(items.map((item) => [item.id, 0]));

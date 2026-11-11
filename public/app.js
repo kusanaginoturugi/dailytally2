@@ -354,6 +354,7 @@ function getDayTotals(date) {
 }
 
 function getCumulativeDayTotals(date) {
+  if (getActiveCeremony()?.id === 10) return getDayTotals(date);
   return date <= todayISO() ? getDayTotals(date) : null;
 }
 
