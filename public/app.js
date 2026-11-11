@@ -354,7 +354,8 @@ function getDayTotals(date) {
 }
 
 function getCumulativeDayTotals(date) {
-  if (getActiveCeremony()?.id === 10) return getDayTotals(date);
+  const firstTallyDate = (state.activeCeremonyData.tallyDates || []).find((entry) => !entry.isFinal)?.date;
+  if (getActiveCeremony()?.id === 10 && date === firstTallyDate) return getDayTotals(date);
   return date <= todayISO() ? getDayTotals(date) : null;
 }
 

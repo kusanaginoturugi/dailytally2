@@ -31,6 +31,7 @@ function getCarriedValue(index, fellowshipId, itemId, weekDates, untilDate) {
 export function buildSummary({ ceremony, items, fellowships, tallies, fellowshipTargets, summaryOverrides, tallyDates = [], today = todayISO() }) {
   const weekDates = tallyDates.length ? tallyDates.map((entry) => entry.date) : listDatesInRange(ceremony.beginAt, ceremony.endAt);
   const dailyDates = ceremony.endAt ? weekDates.filter((date) => date < ceremony.endAt) : weekDates;
+  const firstTallyDate = tallyDates.find((entry) => !entry.isFinal)?.date || dailyDates[0];
   const talliesIndex = buildTalliesIndex(tallies);
   const fellowshipTargetIndex = new Map(
     fellowshipTargets.map((t) => [`${t.fellowshipId}:${t.itemId}`, t.value]),
@@ -38,8 +39,9 @@ export function buildSummary({ ceremony, items, fellowships, tallies, fellowship
   const overrideIndex = new Map(summaryOverrides.map((o) => [o.itemId, o.value]));
 
   const dailyTotals = dailyDates.map((date) => {
-    // 泉珠収天護摩供は、集計日前に入力された数値も事前確認できるようにする。
-    if (date > today && ceremony.id !== 10) {
+    // 泉珠収天護摩供は、最初の集計日だけ事前入力分を確認できるようにする。
+    const showPreEnteredFirstTally = ceremony.id === 10 && date === firstTallyDate;
+    if (date > today && !showPreEnteredFirstTally) {
       return { date, totals: null };
     }
     const totals = Object.fromEntries(items.map((item) => [item.id, 0]));
