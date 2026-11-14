@@ -34,7 +34,7 @@ function renderSummaryHeaderCell(item, ceremony) {
 
 function summaryTitle(ceremony) {
   if (ceremony.id === 10) {
-    return "幸福（しあわせ）まつりー第15回泉珠収天護摩供ー（R8.9.25〜R9.3.21）";
+    return "幸福（しあわせ）まつり−第15回泉珠収天護摩供−（R8.9.25〜R9.3.21）";
   }
   return `～第${ceremony.nextNumber}回${ceremony.name}　集計表～　報告数は累計数です`;
 }
