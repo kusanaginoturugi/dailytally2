@@ -18,7 +18,7 @@ INSERT INTO tally_items (ceremony_id, item_key, name, summary_name, unit, sort_o
   (10, 'ryuge',        '三會龍華之御柱',       '三會龍華之御柱',       '本', 3),
   (10, 'sanki',        '三期滅劫之霊木',       '三期滅劫之霊木',       '本', 4),
   (10, 'lecturer',     '講道師数',             '講道師数',             '人', 5),
-  (10, 'altar',        '開壇数',               '開壇数',               '座', 6),
+  (10, 'altar',        '開壇数',               '開壇数',               '壇', 6),
   (10, 'ancestral',    '合同祖霊超抜霊数',     '合同祖霊超抜霊数',     '霊', 7),
   (10, 'seekers',      '得道者数',             '得道者数',             '人', 8),
   (10, 'participants', '参加人数',             '参加人数',             '人', 9);
