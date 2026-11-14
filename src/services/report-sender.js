@@ -275,6 +275,19 @@ async function sendNotification(env, settings, subject, body, attachment = null)
   }
 }
 
+async function generateReportPdf(env, ceremony, options) {
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await generateSummaryPdf(env, ceremony.id, { reportDate: options.reportDate });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  const detail = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`PDFの生成に3回失敗しました: ${detail}`);
+}
+
 async function sendReport(env, ceremony, settings, sendKey, startMessage, options = {}) {
   const startAt = formatJSTTimestamp();
   await updateReportAttempt(env.DB, { lastAttemptAt: startAt, lastAttemptKey: sendKey, lastError: "" });
@@ -295,7 +308,7 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
     : null;
 
   try {
-    pdfBuffer = await generateSummaryPdf(env, ceremony.id, { reportDate: options.reportDate });
+    pdfBuffer = await generateReportPdf(env, ceremony, options);
     const cookie = await tendoLogin(env);
     const result = await submitOnlineReport(env, ceremony, settings, cookie, pdfBuffer);
     const successAt = formatJSTTimestamp();
@@ -317,6 +330,7 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const failedAt = formatJSTTimestamp();
+    const failedOperation = pdfBuffer ? "アドバンスドページへの送信" : "PDFの生成";
     await updateReportError(env.DB, message);
     await appendReportHistory(env.DB, {
       sentAt: failedAt,
@@ -329,7 +343,7 @@ async function sendReport(env, ceremony, settings, sendKey, startMessage, option
       env,
       settings,
       "【毎日集計】送信失敗",
-      `アドバンスドページへの送信に失敗しました。\n\n護摩供: ${ceremony.name}\n失敗時刻: ${failedAt}\n\nエラー内容:\n${message}\n\n手動送信が必要です。`,
+      `${failedOperation}に失敗しました。\n\n護摩供: ${ceremony.name}\n失敗時刻: ${failedAt}\n\nエラー内容:\n${message}\n\n手動送信が必要です。`,
       attachment(),
     );
     throw error;
