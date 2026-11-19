@@ -41,7 +41,7 @@ import {
   updateReportSettings,
 } from "../services/reports.js";
 import { generateSummaryPdf } from "../services/pdf.js";
-import { runManualReport } from "../services/report-sender.js";
+import { runManualReport, runReportThroughDate } from "../services/report-sender.js";
 import { syncFellowships } from "../services/master-sync.js";
 import { todayISO } from "../lib/dates.js";
 
@@ -319,6 +319,21 @@ async function handleReportSend(request, env) {
   return jsonResponse({ ok: true, reportSettings, reportHistory, latestHistory: reportHistory[0] || null });
 }
 
+async function handleReportSendThroughDate(request, env) {
+  if (!canWriteAdmin(request)) return forbidden();
+  const body = await readJsonBody(request);
+  const reportDate = String(body.reportDate || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
+    return badRequest("reportDate must be YYYY-MM-DD");
+  }
+  await runReportThroughDate(env, reportDate);
+  const [reportSettings, reportHistory] = await Promise.all([
+    getReportSettings(env.DB),
+    listReportHistory(env.DB, 20),
+  ]);
+  return jsonResponse({ ok: true, reportSettings, reportHistory, latestHistory: reportHistory[0] || null });
+}
+
 export async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -339,6 +354,7 @@ export async function handleApi(request, env) {
     if (path === "/api/report-settings" && request.method === "POST") return await handleReportSettings(request, env);
     if (path === "/api/report-pdf" && request.method === "GET") return await handleReportPdf(request, env);
     if (path === "/api/report-send" && request.method === "POST") return await handleReportSend(request, env);
+    if (path === "/api/report-send-through-date" && request.method === "POST") return await handleReportSendThroughDate(request, env);
     if (path === "/api/sync/masters" && request.method === "POST") return await handleSyncMasters(request, env);
     if (path === "/api/fellowships/all" && request.method === "GET") return await handleListAllFellowships(request, env);
     if (path === "/api/fellowships/enabled" && request.method === "POST") return await handleFellowshipEnabled(request, env);

@@ -833,14 +833,18 @@ function renderReportHistory(listEl) {
   }
 }
 
-async function sendManualReport(button, unlock, statusEl, historyEl, resultEl) {
-  const originalText = button.textContent;
-  button.disabled = true;
+async function sendManualReport(buttons, unlock, statusEl, historyEl, resultEl, endpoint, payload, completionLabel) {
+  const originalTexts = buttons.map((button) => button.textContent);
+  buttons.forEach((button) => {
+    button.disabled = true;
+  });
   unlock.disabled = true;
-  button.textContent = "送信中...";
+  buttons.forEach((button) => {
+    button.textContent = "送信中...";
+  });
   resultEl.textContent = "手動送信中...";
   try {
-    const result = await apiSend("/api/report-send", {});
+    const result = await apiSend(endpoint, payload);
     if (!result.ok) {
       throw new Error(result.payload?.error || `送信に失敗しました (${result.status})`);
     }
@@ -854,16 +858,18 @@ async function sendManualReport(button, unlock, statusEl, historyEl, resultEl) {
     renderReportHistory(historyEl);
     const latest = result.payload?.latestHistory;
     resultEl.textContent = latest
-      ? `手動送信完了: ${latest.status || "記録"} / ${latest.at || ""}`
-      : "手動送信完了";
+      ? `${completionLabel}: ${latest.status || "記録"} / ${latest.at || ""}`
+      : completionLabel;
   } catch (error) {
     console.error("手動送信に失敗しました。", error);
     resultEl.textContent = `手動送信エラー: ${error.message || error}`;
   } finally {
     unlock.checked = false;
     unlock.disabled = false;
-    button.textContent = originalText;
-    button.disabled = true;
+    buttons.forEach((button, index) => {
+      button.textContent = originalTexts[index];
+      button.disabled = true;
+    });
   }
 }
 
@@ -884,6 +890,8 @@ function renderAdminPage() {
   const historyList = content.querySelector("#reportHistoryList");
   const manualUnlock = content.querySelector("#manualReportUnlock");
   const manualButton = content.querySelector("#manualReportButton");
+  const manualThroughDate = content.querySelector("#manualReportThroughDate");
+  const manualThroughButton = content.querySelector("#manualReportThroughButton");
   const manualResult = content.querySelector("#manualReportResult");
 
   const ceremony = getActiveCeremony();
@@ -906,6 +914,7 @@ function renderAdminPage() {
   reportNotifyEmail.value = state.reportSettings.notifyEmail || "";
   reportStatus.textContent = reportStatusText();
   renderReportHistory(historyList);
+  manualThroughDate.value = addDaysISO(todayISO(), -1);
 
   ceremonySelect.addEventListener("change", async () => {
     const id = Number(ceremonySelect.value);
@@ -950,10 +959,38 @@ function renderAdminPage() {
 
   manualUnlock.addEventListener("change", () => {
     manualButton.disabled = !manualUnlock.checked;
+    manualThroughButton.disabled = !manualUnlock.checked;
   });
   manualButton.addEventListener("click", () => {
     if (manualButton.disabled || !manualUnlock.checked) return;
-    sendManualReport(manualButton, manualUnlock, reportStatus, historyList, manualResult);
+    sendManualReport(
+      [manualButton, manualThroughButton],
+      manualUnlock,
+      reportStatus,
+      historyList,
+      manualResult,
+      "/api/report-send",
+      {},
+      "手動送信完了",
+    );
+  });
+  manualThroughButton.addEventListener("click", () => {
+    if (manualThroughButton.disabled || !manualUnlock.checked) return;
+    const reportDate = manualThroughDate.value;
+    if (!reportDate) {
+      manualResult.textContent = "集計日を指定してください。";
+      return;
+    }
+    sendManualReport(
+      [manualButton, manualThroughButton],
+      manualUnlock,
+      reportStatus,
+      historyList,
+      manualResult,
+      "/api/report-send-through-date",
+      { reportDate },
+      `${formatShortDate(reportDate)}までの手動送信完了`,
+    );
   });
 
   const syncMastersButton = content.querySelector("#syncMastersButton");
