@@ -173,7 +173,8 @@ export async function generateSummaryPdf(env, ceremonyId, options = {}) {
   const browser = await puppeteer.launch(env.BROWSER);
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    // 集計表は外部リソースを読み込まない。通信停止待ちによるタイムアウトを避ける。
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
     return await page.pdf({
       format: "A4",
       landscape: true,
