@@ -744,6 +744,7 @@ function renderInputPage(fellowshipName) {
   fillInputHeader(content.querySelector("#inputHeaderRow"));
 
   const tbody = content.querySelector("tbody");
+  const ceremony = getActiveCeremony();
   const items = getActiveItems();
   const editable = canEditFellowship(fellowshipName);
   const tallySaveControls = content.querySelector("#tallySaveControls");
