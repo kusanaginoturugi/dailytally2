@@ -26,7 +26,13 @@ export default {
     if (url.pathname.startsWith("/api/")) {
       return handleApi(request, env);
     }
-    return env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+    if (url.pathname === "/" || url.pathname.endsWith(".html")) {
+      const headers = new Headers(response.headers);
+      headers.set("cache-control", "no-store");
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    }
+    return response;
   },
 
   async scheduled(_controller, env, ctx) {

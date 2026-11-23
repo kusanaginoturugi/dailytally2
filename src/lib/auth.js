@@ -200,6 +200,14 @@ export async function authenticateRequest(request, env) {
   }
   const user = await readSessionUser(request, env);
   if (!user) {
+    if (url.pathname.startsWith("/api/")) {
+      return {
+        response: new Response(JSON.stringify({ error: "ログインの有効期限が切れています。ログインし直してください。" }), {
+          status: 401,
+          headers: { "content-type": "application/json; charset=utf-8" },
+        }),
+      };
+    }
     const loginUrl = new URL("/auth/login", url.origin);
     loginUrl.searchParams.set("rd", `${url.pathname}${url.search}`);
     return { response: redirectResponse(loginUrl.toString()) };
