@@ -299,6 +299,28 @@ function setLocalTallyValue(fellowshipId, itemId, date, value) {
   }
 }
 
+function tallyDraftKey(ceremonyId, fellowshipId, itemId, date) {
+  return `daily-tally2-draft:${ceremonyId}:${fellowshipId}:${itemId}:${date}`;
+}
+
+function readTallyDraft(ceremonyId, fellowshipId, itemId, date) {
+  try {
+    return sessionStorage.getItem(tallyDraftKey(ceremonyId, fellowshipId, itemId, date));
+  } catch (_error) {
+    return null;
+  }
+}
+
+function writeTallyDraft(ceremonyId, fellowshipId, itemId, date, value) {
+  try {
+    const key = tallyDraftKey(ceremonyId, fellowshipId, itemId, date);
+    if (value === null) sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, value);
+  } catch (_error) {
+    // ブラウザの保存領域を使えない場合も、画面上の入力はそのまま扱う。
+  }
+}
+
 function getFellowshipTargetValue(fellowshipId, itemId) {
   const found = state.activeCeremonyData.fellowshipTargets.find(
     (t) => t.fellowshipId === fellowshipId && t.itemId === itemId,
@@ -722,17 +744,29 @@ function renderInputPage(fellowshipName) {
   };
 
   const appendTallyInput = (td, item, date, current, validate) => {
-    const input = createNumberInput(current, () => {}, "", {
+    const originalValue = current === 0 ? "" : String(current);
+    const draft = readTallyDraft(ceremony.id, fellowship.id, item.id, date);
+    const displayValue = draft === null ? current : Number(draft) || 0;
+    const input = createNumberInput(displayValue, () => {}, "", {
       validate,
       warningContainer: section,
       saveOnChange: false,
-      onInput: syncSaveButton,
+      onInput: (changedInput) => {
+        writeTallyDraft(
+          ceremony.id,
+          fellowship.id,
+          item.id,
+          date,
+          changedInput.value === originalValue ? null : changedInput.value,
+        );
+        syncSaveButton();
+      },
     });
     const entry = {
       input,
       item,
       date,
-      originalValue: current === 0 ? "" : String(current),
+      originalValue,
       validate,
     };
     pendingTallies.push(entry);
@@ -759,6 +793,7 @@ function renderInputPage(fellowshipName) {
       saveTalliesButton.disabled = true;
       saveTalliesButton.textContent = "保存中...";
       tallySaveResult.textContent = "";
+      tallySaveResult.className = "tally-save-result";
       let saved = 0;
       try {
         for (const entry of entries) {
@@ -769,21 +804,25 @@ function renderInputPage(fellowshipName) {
             const message = result.payload?.error || "保存に失敗しました";
             setInputWarning(section, message);
             tallySaveResult.textContent = `保存できませんでした: ${message}`;
+            tallySaveResult.className = "tally-save-result error";
             entry.input.focus();
             break;
           }
-          setLocalTallyValue(fellowship.id, entry.item.id, entry.date, value);
-          entry.originalValue = raw;
-          saved += 1;
+        setLocalTallyValue(fellowship.id, entry.item.id, entry.date, value);
+        entry.originalValue = raw;
+        writeTallyDraft(ceremony.id, fellowship.id, entry.item.id, entry.date, null);
+        saved += 1;
         }
         if (saved === entries.length) {
           setInputWarning(section, "");
-          tallySaveResult.textContent = saved ? "入力を保存しました。" : "変更はありません。";
+          tallySaveResult.textContent = saved ? `保存しました（${saved}件）。` : "変更はありません。";
+          tallySaveResult.className = "tally-save-result success";
         }
       } catch (error) {
         const message = `保存できませんでした: ${error.message || error}`;
         setInputWarning(section, message);
         tallySaveResult.textContent = message;
+        tallySaveResult.className = "tally-save-result error";
       } finally {
         saveTalliesButton.textContent = originalText;
         syncSaveButton();
