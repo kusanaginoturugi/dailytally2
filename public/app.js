@@ -452,6 +452,11 @@ function createNumberInput(currentValue, onChange, className = "", options = {})
     const message = options.validate ? options.validate(input.value) : "";
     setInputInvalid(input, message);
     setInputWarning(options.warningContainer, message);
+  });
+  input.addEventListener("change", () => {
+    const message = options.validate ? options.validate(input.value) : "";
+    setInputInvalid(input, message);
+    setInputWarning(options.warningContainer, message);
     if (message) return;
     onChange(input.value);
   });
