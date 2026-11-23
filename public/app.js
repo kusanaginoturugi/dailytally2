@@ -452,13 +452,14 @@ function createNumberInput(currentValue, onChange, className = "", options = {})
     const message = options.validate ? options.validate(input.value) : "";
     setInputInvalid(input, message);
     setInputWarning(options.warningContainer, message);
+    options.onInput?.(input);
   });
   input.addEventListener("change", () => {
     const message = options.validate ? options.validate(input.value) : "";
     setInputInvalid(input, message);
     setInputWarning(options.warningContainer, message);
     if (message) return;
-    onChange(input.value);
+    if (options.saveOnChange !== false) onChange(input.value);
   });
   return input;
 }
@@ -706,6 +707,85 @@ function renderInputPage(fellowshipName) {
   const tbody = content.querySelector("tbody");
   const items = getActiveItems();
   const editable = canEditFellowship(fellowshipName);
+  const tallySaveControls = content.querySelector("#tallySaveControls");
+  const saveTalliesButton = content.querySelector("#saveTalliesButton");
+  const tallySaveResult = content.querySelector("#tallySaveResult");
+  const pendingTallies = [];
+
+  const syncSaveButton = () => {
+    const hasChanges = pendingTallies.some((entry) => entry.input.value !== entry.originalValue);
+    saveTalliesButton.disabled = !hasChanges;
+  };
+
+  const appendTallyInput = (td, item, date, current, validate) => {
+    const input = createNumberInput(current, () => {}, "", {
+      validate,
+      warningContainer: section,
+      saveOnChange: false,
+      onInput: syncSaveButton,
+    });
+    const entry = {
+      input,
+      item,
+      date,
+      originalValue: current === 0 ? "" : String(current),
+      validate,
+    };
+    pendingTallies.push(entry);
+    td.appendChild(input);
+    appendUnit(td, item.unit);
+  };
+
+  if (!editable) {
+    tallySaveControls.hidden = true;
+  } else {
+    saveTalliesButton.addEventListener("click", async () => {
+      const entries = pendingTallies
+        .filter((entry) => entry.input.value !== entry.originalValue)
+        .sort((a, b) => a.date.localeCompare(b.date) || a.item.id - b.item.id);
+      const invalid = entries.find((entry) => entry.validate(entry.input.value));
+      if (invalid) {
+        const message = invalid.validate(invalid.input.value);
+        setInputWarning(section, message);
+        invalid.input.focus();
+        return;
+      }
+
+      const originalText = saveTalliesButton.textContent;
+      saveTalliesButton.disabled = true;
+      saveTalliesButton.textContent = "保存中...";
+      tallySaveResult.textContent = "";
+      let saved = 0;
+      try {
+        for (const entry of entries) {
+          const raw = entry.input.value;
+          const value = Math.max(0, Number(raw) || 0);
+          const result = await postTally(fellowshipName, entry.item.id, entry.date, raw === "" ? "" : value);
+          if (!result.ok) {
+            const message = result.payload?.error || "保存に失敗しました";
+            setInputWarning(section, message);
+            tallySaveResult.textContent = `保存できませんでした: ${message}`;
+            entry.input.focus();
+            break;
+          }
+          setLocalTallyValue(fellowship.id, entry.item.id, entry.date, value);
+          entry.originalValue = raw;
+          saved += 1;
+        }
+        if (saved === entries.length) {
+          setInputWarning(section, "");
+          tallySaveResult.textContent = saved ? "入力を保存しました。" : "変更はありません。";
+        }
+      } catch (error) {
+        const message = `保存できませんでした: ${error.message || error}`;
+        setInputWarning(section, message);
+        tallySaveResult.textContent = message;
+      } finally {
+        saveTalliesButton.textContent = originalText;
+        syncSaveButton();
+      }
+    });
+  }
 
   // 目標行
   const targetRow = document.createElement("tr");
@@ -742,21 +822,13 @@ function renderInputPage(fellowshipName) {
       const current = getTallyValue(fellowship.id, item.id, date.id);
       const canEditDate = editable && date.id >= todayISO();
       if (canEditDate) {
-        const input = createNumberInput(current, async (raw) => {
-          const value = Math.max(0, Number(raw) || 0);
-          const result = await postTally(fellowshipName, item.id, date.id, raw === "" ? "" : value);
-          if (result.ok) {
-            setLocalTallyValue(fellowship.id, item.id, date.id, value);
-            setInputWarning(section, "");
-          } else {
-            setInputWarning(section, result.payload?.error || "保存に失敗しました");
-          }
-        }, "", {
-          validate: (value) => validateCumulative(fellowship.id, item.id, date.id, value),
-          warningContainer: section,
-        });
-        td.appendChild(input);
-        appendUnit(td, item.unit);
+        appendTallyInput(
+          td,
+          item,
+          date.id,
+          current,
+          (value) => validateCumulative(fellowship.id, item.id, date.id, value),
+        );
       } else {
         appendReadonlyValue(td, current, item.unit);
       }
@@ -776,21 +848,13 @@ function renderInputPage(fellowshipName) {
     const finalValue = getTallyValue(fellowship.id, item.id, finalDate);
     const canEditDate = editable && finalDate >= todayISO();
     if (canEditDate) {
-      const input = createNumberInput(finalValue, async (raw) => {
-        const value = Math.max(0, Number(raw) || 0);
-        const result = await postTally(fellowshipName, item.id, finalDate, raw === "" ? "" : value);
-        if (result.ok) {
-          setLocalTallyValue(fellowship.id, item.id, finalDate, value);
-          setInputWarning(section, "");
-        } else {
-          setInputWarning(section, result.payload?.error || "保存に失敗しました");
-        }
-      }, "", {
-        validate: (value) => validateCumulative(fellowship.id, item.id, ceremony?.endAt || "", value),
-        warningContainer: section,
-      });
-      td.appendChild(input);
-      appendUnit(td, item.unit);
+      appendTallyInput(
+        td,
+        item,
+        finalDate,
+        finalValue,
+        (value) => validateCumulative(fellowship.id, item.id, ceremony?.endAt || "", value),
+      );
     } else {
       appendReadonlyValue(td, finalValue, item.unit);
     }
