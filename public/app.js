@@ -129,6 +129,9 @@ async function refreshActiveCeremony() {
   if (document.activeElement && ["INPUT", "SELECT"].includes(document.activeElement.tagName)) {
     return;
   }
+  if (pageContainer.querySelector(".input-page[data-unsaved-tallies='true']")) {
+    return;
+  }
   try {
     const remote = await apiGet("/api/bootstrap");
     Object.assign(state, normalizeRemoteState(remote));
@@ -713,6 +716,8 @@ function renderInputPage(fellowshipName) {
   const pendingTallies = [];
 
   const syncSaveButton = () => {
+    const hasChanges = pendingTallies.some((entry) => entry.input.value !== entry.originalValue);
+    section.dataset.unsavedTallies = String(hasChanges);
     saveTalliesButton.disabled = false;
   };
 
