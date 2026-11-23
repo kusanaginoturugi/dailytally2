@@ -713,8 +713,7 @@ function renderInputPage(fellowshipName) {
   const pendingTallies = [];
 
   const syncSaveButton = () => {
-    const hasChanges = pendingTallies.some((entry) => entry.input.value !== entry.originalValue);
-    saveTalliesButton.disabled = !hasChanges;
+    saveTalliesButton.disabled = false;
   };
 
   const appendTallyInput = (td, item, date, current, validate) => {
