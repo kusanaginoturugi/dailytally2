@@ -2,6 +2,7 @@
 const REFRESH_INTERVAL_MS = 15000;
 const ACTIVE_TAB_KEY = "daily-tally2-active-tab";
 const REPORT_SEND_TIME = "23:55";
+const APP_URL = "https://dailytally2.kusanaginoturugi.workers.dev/";
 
 const appTitle = document.getElementById("appTitle");
 const userStatus = document.getElementById("userStatus");
@@ -19,7 +20,20 @@ const state = {
 };
 let activeTab = "admin";
 
-init();
+if (window.location.protocol === "file:") {
+  renderLocalFileNotice();
+} else {
+  init();
+}
+
+function renderLocalFileNotice() {
+  userStatus.textContent = "公開版のアプリを開いてください。";
+  pageContainer.innerHTML = `
+    <section class="local-file-notice">
+      <p>このファイルを直接開くと、集計データには接続できません。</p>
+      <a href="${APP_URL}">毎日集計を開く</a>
+    </section>`;
+}
 
 function defaultReportSettings() {
   return {

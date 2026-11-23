@@ -138,6 +138,24 @@ main {
   margin-top: 14px;
 }
 
+.local-file-notice {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+  font-weight: 700;
+}
+
+.local-file-notice p {
+  margin: 0 0 12px;
+}
+
+.local-file-notice a {
+  color: #174a73;
+}
+
 .manual-report-unlock {
   display: inline-flex;
   align-items: center;
