@@ -1233,7 +1233,8 @@ async function saveSummaryPdf(button) {
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    // 一部のブラウザでは click の直後に URL を無効化すると、保存開始前にPDFが消える。
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   } catch (error) {
     console.error("PDF を保存できませんでした。", error);
     alert("PDF を保存できませんでした。もう一度お試しください。");
