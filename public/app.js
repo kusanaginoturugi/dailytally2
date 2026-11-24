@@ -1017,8 +1017,6 @@ function renderAdminPage() {
   const historyList = content.querySelector("#reportHistoryList");
   const manualUnlock = content.querySelector("#manualReportUnlock");
   const manualButton = content.querySelector("#manualReportButton");
-  const manualThroughDate = content.querySelector("#manualReportThroughDate");
-  const manualThroughButton = content.querySelector("#manualReportThroughButton");
   const manualResult = content.querySelector("#manualReportResult");
 
   const ceremony = getActiveCeremony();
@@ -1041,7 +1039,6 @@ function renderAdminPage() {
   reportNotifyEmail.value = state.reportSettings.notifyEmail || "";
   reportStatus.textContent = reportStatusText();
   renderReportHistory(historyList);
-  manualThroughDate.value = addDaysISO(todayISO(), -1);
 
   ceremonySelect.addEventListener("change", async () => {
     const id = Number(ceremonySelect.value);
@@ -1086,12 +1083,11 @@ function renderAdminPage() {
 
   manualUnlock.addEventListener("change", () => {
     manualButton.disabled = !manualUnlock.checked;
-    manualThroughButton.disabled = !manualUnlock.checked;
   });
   manualButton.addEventListener("click", () => {
     if (manualButton.disabled || !manualUnlock.checked) return;
     sendManualReport(
-      [manualButton, manualThroughButton],
+      [manualButton],
       manualUnlock,
       reportStatus,
       historyList,
@@ -1099,24 +1095,6 @@ function renderAdminPage() {
       "/api/report-send",
       {},
       "手動送信完了",
-    );
-  });
-  manualThroughButton.addEventListener("click", () => {
-    if (manualThroughButton.disabled || !manualUnlock.checked) return;
-    const reportDate = manualThroughDate.value;
-    if (!reportDate) {
-      manualResult.textContent = "集計日を指定してください。";
-      return;
-    }
-    sendManualReport(
-      [manualButton, manualThroughButton],
-      manualUnlock,
-      reportStatus,
-      historyList,
-      manualResult,
-      "/api/report-send-through-date",
-      { reportDate },
-      `${formatShortDate(reportDate)}までの手動送信完了`,
     );
   });
 
