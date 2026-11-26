@@ -592,6 +592,7 @@ async function switchCeremony(ceremonyId) {
       }
     }
   }
+  return result;
 }
 
 // -- レンダリング --
@@ -1004,6 +1005,7 @@ function renderAdminPage() {
   const template = document.getElementById("adminPageTemplate");
   const content = template.content.cloneNode(true);
   const ceremonySelect = content.querySelector("#ceremonySelect");
+  const ceremonySwitchStatus = content.querySelector("#ceremonySwitchStatus");
   const weekStart = content.querySelector("#weekStart");
   const weekEnd = content.querySelector("#weekEnd");
   const seekerStart = content.querySelector("#seekerStart");
@@ -1042,8 +1044,24 @@ function renderAdminPage() {
 
   ceremonySelect.addEventListener("change", async () => {
     const id = Number(ceremonySelect.value);
-    await switchCeremony(id);
-    render();
+    const previousValue = ceremony ? String(ceremony.id) : "";
+    ceremonySelect.disabled = true;
+    ceremonySwitchStatus.textContent = "護摩供を切り替えています…";
+    try {
+      const result = await switchCeremony(id);
+      if (!result.ok) {
+        ceremonySelect.value = previousValue;
+        ceremonySwitchStatus.textContent = result.payload?.error || "護摩供を切り替えられませんでした。ログインを確認してください。";
+        return;
+      }
+      render();
+    } catch (error) {
+      ceremonySelect.value = previousValue;
+      ceremonySwitchStatus.textContent = "護摩供を切り替えられませんでした。通信状況を確認して、もう一度お試しください。";
+      console.error("護摩供の切替に失敗しました。", error);
+    } finally {
+      ceremonySelect.disabled = false;
+    }
   });
 
   const persistDates = async () => {

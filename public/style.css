@@ -70,6 +70,13 @@ main {
   min-width: 16em;
 }
 
+.ceremony-switch-status {
+  min-height: 1.4em;
+  margin: 10px 0 0;
+  color: #53637c;
+  font-weight: 600;
+}
+
 .settings input[readonly] {
   background: #ffffff;
 }
